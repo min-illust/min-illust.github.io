@@ -9,7 +9,7 @@ const OUT = path.join(ROOT, "_site");
 const CACHE = path.join(ROOT, ".cache", "img");
 const SITE_URL = (process.env.SITE_URL || "https://min-illust.github.io").replace(/\/$/, "");
 const BASE = (process.env.BASE_PATH || "").replace(/\/$/, ""); // "" か "/repo名"
-const ADMIN_URL = "https://min-illust.netlify.app/admin/";
+const ADMIN_URL = `${SITE_URL}${BASE}/admin/`;
 
 let sharp = null;
 try { sharp = (await import("sharp")).default; } catch { console.warn("sharp なし：画像は圧縮せずにコピーします"); }
@@ -312,13 +312,15 @@ const groups = [...groupMap.values()].sort((a, b) => b.updated.localeCompare(a.u
 await fs.writeFile(path.join(OUT, "data/site.json"), JSON.stringify({ updated: new Date().toISOString(), categories, posts, groups }));
 console.log(`作品まとめ：${groups.length} 件`);
 
-// 管理画面はNetlify側へ案内
+// 管理画面（GitHub Pages で公開。設定は GitHub の admin/config.yml を直接読む）
 await fs.mkdir(path.join(OUT, "admin"), { recursive: true });
-await fs.writeFile(path.join(OUT, "admin/index.html"), `<!doctype html><meta charset="utf-8"><meta name="robots" content="noindex"><meta http-equiv="refresh" content="0;url=${ADMIN_URL}"><a href="${ADMIN_URL}">管理画面へ</a>`);
+await fs.copyFile(path.join(ROOT, "admin/index.html"), path.join(OUT, "admin/index.html"));
+// 管理画面で画像を確認できるよう、元の画像も /images/ に置く（サイト本体は軽くした img/ を使う）
+if (await exists(path.join(ROOT, "images"))) await fs.cp(path.join(ROOT, "images"), path.join(OUT, "images"), { recursive: true });
 
 // AI学習用クローラーへのお断り
 const aiBots = ["GPTBot", "ChatGPT-User", "OAI-SearchBot", "CCBot", "Google-Extended", "anthropic-ai", "ClaudeBot", "Claude-Web", "PerplexityBot", "Bytespider", "Applebot-Extended", "meta-externalagent", "FacebookBot", "cohere-ai", "Diffbot", "ImagesiftBot", "Omgilibot", "Timpibot", "img2dataset", "Amazonbot"];
-await fs.writeFile(path.join(OUT, "robots.txt"), aiBots.map((b) => `User-agent: ${b}\nDisallow: /`).join("\n\n") + `\n\nUser-agent: *\nDisallow: /admin/\nAllow: /\n`);
+await fs.writeFile(path.join(OUT, "robots.txt"), aiBots.map((b) => `User-agent: ${b}\nDisallow: /`).join("\n\n") + `\n\nUser-agent: *\nDisallow: /admin/\nDisallow: /images/\nAllow: /\n`);
 await fs.writeFile(path.join(OUT, ".nojekyll"), "");
 await fs.writeFile(path.join(OUT, "404.html"), `<!doctype html><meta charset="utf-8"><title>ページが見つかりません</title><meta http-equiv="refresh" content="3;url=${BASE}/"><p style="font-family:sans-serif;padding:24px">ページが見つかりませんでした。トップに戻ります…</p>`);
 
