@@ -26,15 +26,16 @@ collections:
     delete: true
     slug: "{{year}}{{month}}{{day}}-{{hour}}{{minute}}{{second}}"
     identifier_field: date  # タイトルは任意なので、必ず入る日付を識別用にする
-    summary: "{{date}}｜{{category}}｜{{title}}"
-    sortable_fields: [date, title, category]
+    summary: "{{date}}｜{{category}}｜{{work}}{{work_name}}　{{title}}"
+    sortable_fields: [date, work, category]
     view_groups:
+      - { label: 作品, field: work }
       - { label: 分類, field: category }
     view_filters:
       - { label: ピックアップだけ, field: pickup, pattern: true }
     editor: { preview: false }
     fields:
-      - { name: title, label: タイトル（任意）, widget: string, required: false, hint: "なしでもOK。なしのときは作品名かキャラ名が名前として使われます" }
+      - { name: title, label: 管理用メモ（任意・サイトには出ません）, widget: string, required: false, hint: "管理画面の一覧で見分けるためのメモ。サイトでは作品名・キャラ名が名前として出ます" }
       - { name: date, label: 日付, widget: datetime, format: "YYYY-MM-DD", date_format: "YYYY-MM-DD", time_format: false, default: "{{now}}" }
       - name: category
         label: 分類
@@ -66,6 +67,7 @@ collections:
           - { name: src, label: 画像, widget: image, choose_url: false }
           - { name: caption, label: 一言（任意・拡大したときに絵の下に出ます）, widget: string, required: false }
           - { name: cover, label: 表紙にする（新着の1枚目になります。なしなら1枚目の画像）, widget: boolean, default: false, required: false }
+      - { name: images_bulk, label: 画像（まとめて追加・任意）, widget: image, multiple: true, required: false, choose_url: false, hint: "複数の画像をまとめて選べます（/admin2/ の管理画面）。一言や表紙を付けたい画像は上の「画像」の欄へ。ここの画像は上の画像のあとに並びます" }
       - name: media
         label: 曲・動画のURL（Suno / YouTube・任意）
         label_singular: URL

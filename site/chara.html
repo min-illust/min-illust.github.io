@@ -199,6 +199,8 @@
   .sh-genres{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}
   .sg{font-size:11px;font-weight:900;background:var(--red);color:var(--paper);padding:1px 7px}
   .sh-tl{font-size:14px;line-height:1.65;margin-top:14px;white-space:pre-line;overflow-wrap:anywhere}
+  .sh-tl.fold{display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden}
+  .tl-more{display:block;margin-top:4px;font-size:12px;font-weight:900;color:var(--red);padding:2px 0}
   .tags{display:flex;flex-wrap:wrap;gap:4px;margin-top:10px}
   .tag{font-size:11px;font-weight:700;border:1.5px solid var(--ink);padding:1px 6px;font-family:inherit;color:var(--ink);background:none;cursor:pointer}
   .tag:hover{background:var(--ink);color:var(--paper)}
@@ -554,6 +556,13 @@ clr.addEventListener("click",e=>{e.preventDefault();qEl.value="";state.q="";clr.
 /* ================= 詳細シート ================= */
 const sheet=document.getElementById("sheet"), scrim=document.getElementById("scrim");
 let openId=null, galAll=false;
+// 紹介文が長いときは4行で畳む（イラストまでのスクロールを短く）
+const longTl=t=>{const s=String(t||"");return s.split("\n").length>4||s.length>110};
+document.addEventListener("click",e=>{
+  const b=e.target.closest("[data-tl]"); if(!b) return;
+  const p=b.previousElementSibling; const open=p.classList.toggle("fold");
+  b.textContent=open?"続きを読む ▼":"閉じる ▲";
+});
 // 作品の詳細（一覧のシートと、作品ページの両方で使う）
 function detailHTML(c,all,solo){
   const ill=illustsFor(c);
@@ -577,7 +586,7 @@ function detailHTML(c,all,solo){
         <div class="sh-genres">${(c.genres||[]).map(g=>`<span class="sg">${esc(g)}</span>`).join("")}</div>
       </div>
     </div>
-    <p class="sh-tl">${esc(c.tagline)}</p>
+    ${longTl(c.tagline)?`<p class="sh-tl fold">${esc(c.tagline)}</p><button class="tl-more" data-tl="1">続きを読む ▼</button>`:`<p class="sh-tl">${esc(c.tagline)}</p>`}
     <div class="tags">${(c.tags||[]).map(t=>`<button class="tag" data-tag="${esc(t)}">#${esc(t)}</button>`).join("")}</div>
     <p class="sh-date">RELEASE ${dot(c.published)}${lu?` / UPDATE ${dot(lu)}`:""}</p>
     <div class="btns">

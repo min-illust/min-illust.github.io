@@ -277,7 +277,6 @@ a{color:inherit}
   function entry(p, key, offset, opts = {}){
     const items = p.images.map(im => ({ ...im, label: p.label }));
     return `<article class="entry">${stubHTML(p)}
-      ${p.title && opts.title !== false ? `<h3><a href="${esc(p.url)}">${esc(p.title)}</a></h3>` : ""}
       ${opts.group ? `<h3><a href="${groupHref(p.group)}">${esc((groupOf(p) || {}).name || p.label)}</a></h3>` : ""}
       ${p.comment ? `<p>${esc(p.comment)}</p>` : ""}
       ${items.length ? `<div class="grid3">${items.map((im, k) => shot(key, offset + k, im)).join("")}</div>` : ""}

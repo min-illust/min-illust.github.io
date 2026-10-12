@@ -157,6 +157,8 @@ for (const f of files) {
     if (obj && it.cover && coverIdx < 0) coverIdx = images.length;
     images.push({ ...r, caption: obj ? String(it.caption || "").trim() : "" });
   }
+  // まとめて追加した画像（一言・表紙なし）は、1枚ずつの画像のあとに並べる
+  for (const src of list(raw.images_bulk)) { const r = await processImage(src); if (r && !images.some((x) => x.src === r.src)) images.push({ ...r, caption: "" }); }
   const media = [];
   for (const m of list(raw.media)) { const r = await parseMedia(m); if (r) media.push(r); }
   const title = String(raw.title || "").trim();
@@ -174,7 +176,7 @@ for (const f of files) {
   const [, mm, dd] = day(raw.date).split("-");
   posts.push({
     slug, title, date: day(raw.date),
-    label: title || (isOrig ? charas[0] || "オリジナル" : work || charas[0] || attr[0]) || `${+mm}/${+dd}の作品`, // タイトルなしのときの表示名
+    label: (isOrig ? charas[0] || "オリジナル" : work || charas[0] || attr[0]) || `${+mm}/${+dd}の作品`, // 表示名は作品名・キャラ名（タイトルは管理用でサイトには出さない）
     category, images, media, coverIdx: coverIdx < 0 ? 0 : coverIdx,
     comment: String(raw.comment || ""),
     work, workId: w ? w.id : "", charas,
