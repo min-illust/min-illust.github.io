@@ -8,24 +8,50 @@
     "九条陽太",
     "宮瀬春臣"
   ],
+  "charas_free": [],
   "images": [
     {
       "src": "https://min-illust.github.io/images/スチル_16.png",
       "caption": "ハロウィン",
-      "cover": false
+      "cover": false,
+      "charas": [],
+      "tags": [
+        "ハロウィン"
+      ]
     },
     {
       "src": "/images/スチル_20.png",
       "caption": "サングラス",
-      "cover": false
+      "cover": false,
+      "charas": [],
+      "tags": []
     },
     {
       "src": "/images/スチル_21.png",
       "caption": "ひと休み",
-      "cover": false
+      "cover": false,
+      "charas": [],
+      "tags": []
+    },
+    {
+      "src": "/images/スチル_30.jpg",
+      "caption": "路地裏",
+      "cover": false,
+      "charas": [],
+      "tags": []
+    },
+    {
+      "src": "/images/スチル_34.jpg",
+      "caption": "ゲームセンター",
+      "cover": false,
+      "charas": [],
+      "tags": []
     }
   ],
   "images_bulk": [],
+  "bulk_captions": "",
+  "bulk_tags": "",
+  "bulk_cover": null,
   "media": [],
   "comment": "",
   "tags": [],
