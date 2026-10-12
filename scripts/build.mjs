@@ -289,7 +289,7 @@ characters.sort((a, b) => b.published.localeCompare(a.published) || b.id.localeC
     const desc = (c.tagline || `${c.category}｜${c.genres.join(" / ")}`).replace(/\s+/g, " ").slice(0, 120);
     await fs.writeFile(path.join(dir, "index.html"),
       tpl.replace("<!--HEAD-->", headOf({ title: `${c.title}｜Min.`, desc, url: `${SITE_URL}/chara/w/${c.id}/`, og: abs(c.thumb || c.illusts[0]?.thumb) }))
-        .replace("<!--BOOT-->", bootOf({ single: c.id, characters: [c] })));
+        .replace("<!--BOOT-->", bootOf({ single: c.id, characters })));  // 「同じタグの作品」用に全作品を渡す
   }
   console.log(`キャラリンク集：${characters.length} 作品（作品ページ ${characters.length} 件）／イラスト紐づけ ${characters.reduce((n, c) => n + c.illusts.length, 0)} 枚`);
 }

@@ -193,7 +193,21 @@
   .sg{font-size:11px;font-weight:900;background:var(--red);color:var(--paper);padding:1px 7px}
   .sh-tl{font-size:14px;line-height:1.65;margin-top:14px;white-space:pre-line;overflow-wrap:anywhere}
   .tags{display:flex;flex-wrap:wrap;gap:4px;margin-top:10px}
-  .tag{font-size:11px;font-weight:700;border:1.5px solid var(--ink);padding:1px 6px}
+  .tag{font-size:11px;font-weight:700;border:1.5px solid var(--ink);padding:1px 6px;font-family:inherit;color:var(--ink);background:none;cursor:pointer}
+  .tag:hover{background:var(--ink);color:var(--paper)}
+  .tagon{display:none;margin-top:8px}
+  .tagon.on{display:flex;align-items:center;gap:8px}
+  .tagon span{font-size:11px;color:var(--muted);font-weight:700}
+  .tagon button{background:var(--yellow);color:var(--ink);font-weight:900;font-size:12px;padding:3px 10px}
+  .logo a{color:inherit;text-decoration:none}
+  .more-works{display:block;text-align:center;text-decoration:none;margin-top:18px;padding:10px 0;background:var(--ink);color:var(--paper);font-family:"Anton",sans-serif;font-size:17px;letter-spacing:.08em}
+  .more-works small{display:block;font-family:"Zen Kaku Gothic New",sans-serif;font-size:10px;font-weight:700;letter-spacing:0}
+  .recs{margin-top:18px;border-top:2px dashed rgba(0,0,0,.3);padding-top:12px}
+  .recs h4{font-family:"Anton",sans-serif;font-size:16px;letter-spacing:.08em}
+  .recs-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px 8px;margin-top:8px}
+  .recs-grid a{text-decoration:none;color:var(--ink);min-width:0}
+  .recs-grid img{width:100%;aspect-ratio:1;object-fit:cover;display:block;border:2px solid var(--ink);background:var(--paper-2)}
+  .recs-grid p{font-size:11px;font-weight:900;margin-top:4px;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .sh-date{font-family:"Space Mono",monospace;font-size:11px;color:#6b655a;margin-top:10px}
   .btns{display:flex;gap:8px;margin-top:14px}
   .btn{
@@ -256,7 +270,7 @@
 <div class="wrap">
   <header>
     <p class="now">now creating —</p>
-    <h1 class="logo">MIN<span>.</span></h1>
+    <h1 class="logo"><a href="/chara/">MIN<span>.</span></a></h1>
     <p class="sub">CHARACTER LINKS on キャラぷ</p>
     <div class="stamp">ORIGINAL<br>CHARACTERS</div>
     <p class="author">作者：Min.</p>
@@ -278,6 +292,7 @@
     <div class="cats" id="cats"></div>
     <div class="genres" id="genres"></div>
     <p class="hint">ジャンルは複数タップで掛け合わせ（例：BL × ファンタジー）</p>
+    <div class="tagon" id="tagOn"></div>
     <div class="meta">
       <span class="count" id="count"></span>
       <div class="tools">
@@ -414,7 +429,10 @@ st.addEventListener("click",e=>{if(e.target===st)lbClose()});
 })();
 
 /* ================= 絞り込み ================= */
-const state={q:"",cat:"all",genres:new Set(),sort:"new",view:"grid"};
+const state={q:"",cat:"all",genres:new Set(),sort:"new",view:"grid",tag:""};
+const CHARA_TOP=`${BOOT.base||""}/chara/`;
+document.querySelector(".logo a").href=CHARA_TOP;
+try{ state.tag=new URLSearchParams(location.search).get("tag")||""; }catch(e){}
 
 document.getElementById("cats").innerHTML=
   [["all","すべて"],...CATEGORIES.map(c=>[c,c])].map(([v,l])=>
@@ -427,6 +445,7 @@ function filtered(){
   const q=norm(state.q).trim().split(/\s+/).filter(Boolean);
   let arr=characters.filter(c=>{
     if(state.cat!=="all"&&c.category!==state.cat) return false;
+    if(state.tag&&!(c.tags||[]).some(t=>norm(t)===norm(state.tag))) return false;
     for(const g of state.genres){ if(!(c.genres||[]).includes(g)) return false; }
     if(q.length){
       const hay=norm([c.title,c.tagline,...(c.genres||[]),c.category,...(c.tags||[])].join(" "));
@@ -442,6 +461,10 @@ function filtered(){
 
 function render(){
   const arr=filtered(), box=document.getElementById("results");
+  const to=document.getElementById("tagOn");
+  to.classList.toggle("on",!!state.tag);
+  to.innerHTML=state.tag?`<span>タグで絞り込み中</span><button id="tagOff">#${esc(state.tag)} ✕</button>`:"";
+  if(state.tag) document.getElementById("tagOff").onclick=()=>setTag("");
   document.getElementById("count").textContent=`${arr.length} / ${characters.length} CHARA`;
   if(!arr.length){box.innerHTML=`<p class="empty"><b>NO HIT</b>条件に合うキャラがいません</p>`;return}
   const badge=c=>{const s=status(c);return s?`<span class="mini ${s}">${s==="new"?"NEW":"UP"}</span>`:""};
@@ -462,6 +485,12 @@ function render(){
   }
 }
 
+// タグで絞り込み（URLにも残すので、共有・戻るでも同じ状態になる）
+function setTag(t){
+  state.tag=t;
+  try{ history.replaceState(null,"",t?`?tag=${encodeURIComponent(t)}`:location.pathname); }catch(e){}
+  render(); jumpToResults();
+}
 function setOn(groupId,val){
   document.querySelectorAll(`#${groupId} [data-v]`).forEach(b=>b.classList.toggle("on",b.dataset.v===val));
 }
@@ -513,7 +542,7 @@ function detailHTML(c,all,solo){
       </div>
     </div>
     <p class="sh-tl">${esc(c.tagline)}</p>
-    <div class="tags">${(c.tags||[]).map(t=>`<span class="tag">#${esc(t)}</span>`).join("")}</div>
+    <div class="tags">${(c.tags||[]).map(t=>`<button class="tag" data-tag="${esc(t)}">#${esc(t)}</button>`).join("")}</div>
     <p class="sh-date">RELEASE ${dot(c.published)}${lu?` / UPDATE ${dot(lu)}`:""}</p>
     <div class="btns">
       ${story?`<a class="btn story" href="${esc(c.story)}" target="_blank" rel="noopener">STORY<small>ストーリー</small></a>`:""}
@@ -521,7 +550,24 @@ function detailHTML(c,all,solo){
     </div>
     ${galHTML}
     ${hist.length?`<div class="hist"><h4>UPDATE LOG</h4><ul>${hist.map(u=>`<li><span>${dot(u.date)}</span>${esc(u.text)}</li>`).join("")}</ul></div>`:""}
-    <button class="copy" data-share="1">この作品をシェア</button>`;
+    <button class="copy" data-share="1">この作品をシェア</button>
+    ${solo?recsHTML(c)+`<a class="more-works" href="${CHARA_TOP}">ほかの作品を見る →<small>Min.のキャラクター一覧</small></a>`:""}`;
+}
+// 同じタグの作品（共通タグが多い順→新しい順・最大6件）
+function recsHTML(c){
+  const mine=new Set((c.tags||[]).map(norm));
+  const list=characters.filter(x=>x.id!==c.id).map(x=>({x,n:(x.tags||[]).filter(t=>mine.has(norm(t))).length}))
+    .filter(r=>r.n>0).sort((a,b)=>b.n-a.n||b.x.published.localeCompare(a.x.published)).slice(0,6);
+  if(!list.length) return "";
+  return `<div class="recs"><h4>同じタグの作品</h4><div class="recs-grid">${list.map(({x})=>
+    `<a href="${CHARA_TOP}w/${esc(x.id)}/"><img src="${face(x,idx[x.id])}" alt="" loading="lazy"><p>${esc(x.title)}</p></a>`).join("")}</div></div>`;
+}
+function bindTags(root,solo){
+  root.querySelectorAll("[data-tag]").forEach(b=>b.onclick=()=>{
+    const t=b.dataset.tag;
+    if(solo){ location.href=`${CHARA_TOP}?tag=${encodeURIComponent(t)}`; return; }
+    closeSheet(); setTag(t);
+  });
 }
 function bindGallery(root,c,onMore){
   const ill=illustsFor(c);
@@ -539,6 +585,7 @@ function openSheet(id,refresh){
   document.getElementById("closeSheet").onclick=closeSheet;
   bindGallery(sheet,c,()=>{galAll=true;openSheet(id,true)});
   bindShare(sheet,c);
+  bindTags(sheet,false);
 }
 // シェア：スマホは共有メニュー、使えないときはURLをコピー
 function bindShare(root,c){
@@ -567,8 +614,11 @@ if(SOLO){
   box.innerHTML=detailHTML(SOLO,true,true);   // 作品ページではイラストを最初から全部並べる
   bindGallery(box,SOLO,()=>{});
   bindShare(box,SOLO);
+  bindTags(box,true);
 }else{
   render();
+  // タグ付きで来たときは、絞り込んだ一覧まで下げて見せる
+  if(state.tag) requestAnimationFrame(()=>document.getElementById("allTop").scrollIntoView());
 }
 </script>
 </body>
