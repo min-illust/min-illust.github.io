@@ -4,7 +4,9 @@
   "date": "2026-10-07",
   "category": "キャラぷ",
   "images": [
-    "/images/f19454da-643b-44ed-b31d-bfdd1b281795.jpeg"
+    {
+      "src": "/images/f19454da-643b-44ed-b31d-bfdd1b281795.jpeg"
+    }
   ],
   "comment": "ギター",
   "tags": [

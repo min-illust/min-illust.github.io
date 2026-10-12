@@ -101,18 +101,29 @@ const files = (await exists(postDir)) ? (await fs.readdir(postDir)).filter((f) =
 const posts = [];
 for (const f of files) {
   const raw = await readJSON(path.join(postDir, f), null);
-  if (!raw || !raw.title || !day(raw.date)) { console.warn("読み込めない作品:", f); continue; }
+  if (!raw || !day(raw.date)) { console.warn("読み込めない作品:", f); continue; }
   const slug = f.replace(/\.json$/, "").replace(/[^\w-]/g, "-");
+  // 画像は「画像だけ（文字列）」と「画像＋一言」の両方に対応
+  const rawImgs = Array.isArray(raw.images) ? raw.images : raw.images ? [raw.images] : raw.image ? [raw.image] : [];
   const images = [];
-  for (const s of list(raw.images ?? raw.image)) { const r = await processImage(s); if (r) images.push(r); }
+  for (const it of rawImgs) {
+    const src = typeof it === "string" ? it : it && (it.src || it.url || it.image);
+    if (!src) continue;
+    const r = await processImage(String(src).trim());
+    if (r) images.push({ ...r, caption: it && typeof it === "object" ? String(it.caption || "").trim() : "" });
+  }
   const media = [];
   for (const m of list(raw.media)) { const r = await parseMedia(m); if (r) media.push(r); }
+  const title = String(raw.title || "").trim();
+  const tags = [...new Set(list(raw.tags).map((t) => t.replace(/^#/, "")))];
+  const [, mm, dd] = day(raw.date).split("-");
   posts.push({
-    slug, title: String(raw.title), date: day(raw.date),
+    slug, title, date: day(raw.date),
+    label: title || tags[0] || `${+mm}/${+dd}の作品`, // タイトルなしのときの表示名
     category: String(raw.category || "その他"),
     images, media,
     comment: String(raw.comment || ""),
-    tags: [...new Set(list(raw.tags).map((t) => t.replace(/^#/, "")))],
+    tags,
     charapu: isHttps(String(raw.charapu || "").trim()) ? String(raw.charapu).trim() : "",
     pickup: !!raw.pickup,
     url: `${BASE}/w/${slug}/`,
@@ -130,7 +141,6 @@ const categories = catNames.map((name) => {
 
 // ---------- 書き出し ----------
 await fs.mkdir(path.join(OUT, "data"), { recursive: true });
-await fs.writeFile(path.join(OUT, "data/site.json"), JSON.stringify({ updated: new Date().toISOString(), categories, posts }));
 
 const template = await fs.readFile(path.join(ROOT, "site/app.html"), "utf8");
 const siteTitle = "Min. ILLUST LOG";
@@ -159,7 +169,7 @@ for (const p of posts) {
   const dir = path.join(OUT, "w", p.slug);
   await fs.mkdir(dir, { recursive: true });
   const desc = (p.comment || `${p.category}｜${p.tags.map((t) => "#" + t).join(" ")}`).replace(/\s+/g, " ").slice(0, 120);
-  await fs.writeFile(path.join(dir, "index.html"), page({ title: `${p.title}｜${siteTitle}`, desc, url: `${SITE_URL}/w/${p.slug}/`, og: p.images[0]?.og || defaultOg, post: p.slug }));
+  await fs.writeFile(path.join(dir, "index.html"), page({ title: `${p.label}｜${siteTitle}`, desc, url: `${SITE_URL}/w/${p.slug}/`, og: p.images[0]?.og || defaultOg, post: p.slug }));
 }
 
 // ---------- キャラリンク集（/chara/・キャラぷに貼る用） ----------
@@ -203,6 +213,7 @@ async function charaThumb(src) {
 const charaDir = path.join(ROOT, "content/characters");
 const charaFiles = (await exists(charaDir)) ? (await fs.readdir(charaDir)).filter((f) => f.endsWith(".json")) : [];
 const characters = [];
+const postWork = new Map(); // 投稿 → キャラリンク集の作品
 for (const f of charaFiles) {
   const raw = await readJSON(path.join(charaDir, f), null);
   if (!raw || !raw.title || !day(raw.published)) { console.warn("読み込めないキャラ:", f); continue; }
@@ -219,14 +230,20 @@ for (const f of charaFiles) {
   const keys = [story, talk].filter(Boolean).map(urlKey);
   const names = [raw.title, ...list(raw.illust_tags)].map(normName).filter(Boolean);
   const illusts = [];
+  const cid = f.replace(/\.json$/, "").replace(/[^\w-]/g, "-");
   for (const p of posts) {
     const byUrl = p.charapu && keys.includes(urlKey(p.charapu));
     const byTag = p.tags.some((t) => names.includes(normName(t)));
-    if (byUrl || byTag) for (const im of p.images) illusts.push({ src: im.src, thumb: im.thumb, title: p.title, date: p.date });
+    if (byUrl || byTag) {
+      for (const im of p.images) illusts.push({ src: im.src, thumb: im.thumb, title: im.caption || p.label, date: p.date });
+      // ILLUST LOG の「作品ごとのまとめ」用（キャラぷのURLが一致する作品を優先）
+      const cur = postWork.get(p.slug);
+      if (!cur || (byUrl && !cur.byUrl)) postWork.set(p.slug, { id: cid, title: String(raw.title).trim(), byUrl: !!byUrl });
+    }
   }
 
   characters.push({
-    id: f.replace(/\.json$/, "").replace(/[^\w-]/g, "-"),
+    id: cid,
     title: String(raw.title).trim(),
     category: CHARA_CATS.includes(raw.category) ? raw.category : CHARA_CATS[0],
     genres: genres.length ? genres : ["その他"],
@@ -274,6 +291,26 @@ characters.sort((a, b) => b.published.localeCompare(a.published) || b.id.localeC
   }
   console.log(`キャラリンク集：${characters.length} 作品（作品ページ ${characters.length} 件）／イラスト紐づけ ${characters.reduce((n, c) => n + c.illusts.length, 0)} 枚`);
 }
+
+// ---------- ILLUST LOG：作品ごとのまとめ ----------
+// キャラぷの作品はキャラリンク集と同じルールで1つに。それ以外はタグの1つ目でまとめる。
+const groupMap = new Map();
+for (const p of posts) { // posts は新しい順
+  const w = postWork.get(p.slug);
+  const key = w ? `w:${w.id}` : p.tags[0] ? `t:${p.tags[0]}` : p.title ? `n:${p.title}` : `c:${p.category}`;
+  const name = w ? w.title : p.tags[0] || p.title || p.category;
+  p.group = key;
+  let g = groupMap.get(key);
+  if (!g) groupMap.set(key, g = { key, name, updated: p.date, cover: "", cats: [], posts: [], pics: 0, charapu: "" });
+  g.posts.push(p.slug);
+  g.pics += p.images.length;
+  if (!g.cover) g.cover = coverOf(p);
+  if (!g.charapu && p.charapu) g.charapu = p.charapu;
+  if (!g.cats.includes(p.category)) g.cats.push(p.category);
+}
+const groups = [...groupMap.values()].sort((a, b) => b.updated.localeCompare(a.updated));
+await fs.writeFile(path.join(OUT, "data/site.json"), JSON.stringify({ updated: new Date().toISOString(), categories, posts, groups }));
+console.log(`作品まとめ：${groups.length} 件`);
 
 // 管理画面はNetlify側へ案内
 await fs.mkdir(path.join(OUT, "admin"), { recursive: true });

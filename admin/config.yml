@@ -34,7 +34,7 @@ collections:
       - { label: ピックアップだけ, field: pickup, pattern: true }
     editor: { preview: false }
     fields:
-      - { name: title, label: タイトル, widget: string }
+      - { name: title, label: タイトル（任意）, widget: string, required: false, hint: "なしでもOK。なしのときはタグの1つ目が名前として使われます" }
       - { name: date, label: 日付, widget: datetime, format: "YYYY-MM-DD", date_format: "YYYY-MM-DD", time_format: false }
       - name: category
         label: 分類
@@ -49,7 +49,10 @@ collections:
         label_singular: 画像
         widget: list
         required: false
-        field: { name: src, label: 画像, widget: image, choose_url: false }
+        summary: "{{fields.caption}}"
+        fields:
+          - { name: src, label: 画像, widget: image, choose_url: false }
+          - { name: caption, label: 一言（任意・拡大したときに絵の下に出ます）, widget: string, required: false }
       - name: media
         label: 曲・動画のURL（Suno / YouTube・任意）
         label_singular: URL
