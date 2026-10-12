@@ -157,8 +157,17 @@ for (const f of files) {
     if (obj && it.cover && coverIdx < 0) coverIdx = images.length;
     images.push({ ...r, caption: obj ? String(it.caption || "").trim() : "" });
   }
-  // まとめて追加した画像（一言・表紙なし）は、1枚ずつの画像のあとに並べる
-  for (const src of list(raw.images_bulk)) { const r = await processImage(src); if (r && !images.some((x) => x.src === r.src)) images.push({ ...r, caption: "" }); }
+  // まとめて追加した画像は、1枚ずつの画像のあとに並べる。一言は「上から順に1行ずつ」、表紙は「何枚目か」
+  const bulkCaps = String(raw.bulk_captions || "").split(/\r?\n/);
+  const bulkCover = parseInt(raw.bulk_cover, 10);
+  let bi = 0;
+  for (const src of list(raw.images_bulk)) {
+    const n = bi++;
+    const r = await processImage(src);
+    if (!r || images.some((x) => x.src === r.src)) continue;
+    if (coverIdx < 0 && bulkCover === n + 1) coverIdx = images.length;
+    images.push({ ...r, caption: String(bulkCaps[n] || "").trim() });
+  }
   const media = [];
   for (const m of list(raw.media)) { const r = await parseMedia(m); if (r) media.push(r); }
   const title = String(raw.title || "").trim();
