@@ -1,4 +1,4 @@
-// Min. ILLUST LOG — サイトを組み立てるスクリプト（GitHub Actionsで自動実行）
+// Min. CREATIVE LOG — サイトを組み立てるスクリプト（GitHub Actionsで自動実行）
 // content/ の作品データと images/ の画像から、_site/ に公開用のサイトを作ります。
 import fs from "node:fs/promises";
 import path from "node:path";
@@ -137,6 +137,11 @@ function findWork(charapu, names, oldTags) {
   return works.find((x) => x.names.some((n) => ts.includes(n))) || null;
 }
 
+// 分類（旧名も同じものとして扱う）
+const ORIG_CATS = ["ORIGINAL", "オリジナル"];
+const AI_CATS = ["AI CHARACTERS", "キャラぷ"];
+const MUSIC_CATS = ["MUSIC & MV", "MV・音楽"];
+
 const postDir = path.join(ROOT, "content/posts");
 const files = (await exists(postDir)) ? (await fs.readdir(postDir)).filter((f) => f.endsWith(".json")) : [];
 const posts = [];
@@ -173,7 +178,7 @@ for (const f of files) {
   for (const m of list(raw.media)) { const r = await parseMedia(m); if (r) media.push(r); }
   const title = String(raw.title || "").trim();
   const category = String(raw.category || "その他");
-  const isOrig = category === "オリジナル";
+  const isOrig = ORIG_CATS.includes(category);
   const tags = uniqTags(list(raw.tags));
   const charapu = isHttps(String(raw.charapu || "").trim()) ? String(raw.charapu).trim() : "";
   const workSel = String(raw.work || "").trim(), workName = String(raw.work_name || "").trim();
@@ -197,11 +202,12 @@ for (const f of files) {
     slug, title, date: day(raw.date),
     label: (isOrig ? charas[0] || "オリジナル" : work || charas[0] || attr[0]) || `${+mm}/${+dd}の作品`, // 表示名は作品名・キャラ名（タイトルは管理用でサイトには出さない）
     category, images, media, coverIdx: coverIdx < 0 ? 0 : coverIdx,
+    music: MUSIC_CATS.includes(category) || (!images.length && media.length > 0), // 曲・動画の投稿（新着やカードに♪）
     comment: String(raw.comment || ""),
     work, workId: w ? w.id : "", charas: allCharas,
     tags: uniqTags([work, ...allCharas, ...allAttrs]), // 表示するタグ：作品名 → キャラ名 → 属性の順
     attrs: attr,
-    unmatched: !w && !isOrig && (workSel || category === "キャラぷ") ? (workSel || workName || "（作品名なし）") : "",
+    unmatched: !w && !isOrig && (workSel || AI_CATS.includes(category)) ? (workSel || workName || "（作品名なし）") : "",
     charapu, pickup: !!raw.pickup,
     url: `${BASE}/w/${slug}/`,
   });
@@ -209,18 +215,19 @@ for (const f of files) {
 posts.sort((a, b) => b.date.localeCompare(a.date) || b.slug.localeCompare(a.slug));
 
 const catNames = [...new Set([...(catFile.categories || []).map((c) => String(c.name || "").trim()).filter(Boolean), ...posts.map((p) => p.category)])];
+const catSub = Object.fromEntries((catFile.categories || []).map((c) => [String(c.name || "").trim(), String(c.sub || "")]));
 const catDesc = Object.fromEntries((catFile.categories || []).map((c) => [String(c.name || "").trim(), String(c.description || "")]));
 const coverOf = (p) => p.images[p.coverIdx]?.thumb || p.images[0]?.thumb || p.media.find((m) => m.thumb)?.thumb || "";
 const categories = catNames.map((name) => {
   const ps = posts.filter((p) => p.category === name);
-  return { name, description: catDesc[name] || "", count: ps.length, cover: ps.map(coverOf).find(Boolean) || "" };
+  return { name, sub: catSub[name] || "", description: catDesc[name] || "", count: ps.length, cover: ps.map(coverOf).find(Boolean) || "", music: MUSIC_CATS.includes(name) };
 }).filter((c) => c.count > 0 || catDesc[c.name] !== undefined);
 
 // ---------- 書き出し ----------
 await fs.mkdir(path.join(OUT, "data"), { recursive: true });
 
 const template = await fs.readFile(path.join(ROOT, "site/app.html"), "utf8");
-const siteTitle = "Min. ILLUST LOG";
+const siteTitle = "Min. CREATIVE LOG";
 const defaultOg = posts.find((p) => p.images[0])?.images[0].og || "";
 function page({ title, desc, url, og, post }) {
   const head = [
@@ -358,7 +365,7 @@ const groupMap = new Map();
 for (const p of posts) { // posts は新しい順
   let key, name;
   if (p.workId) { key = `w:${p.workId}`; name = p.work; }
-  else if (p.category === "オリジナル") { key = `o:${normName(p.charas[0] || "")}`; name = p.charas[0] || "オリジナル"; }
+  else if (ORIG_CATS.includes(p.category)) { key = `o:${normName(p.charas[0] || "")}`; name = p.charas[0] || "オリジナル"; }
   else if (p.work) { key = `n:${normName(p.work)}`; name = p.work; }
   else if (p.attrs[0]) { key = `t:${normName(p.attrs[0])}`; name = p.attrs[0]; }
   else { key = `c:${p.category}`; name = p.category; }
@@ -392,7 +399,7 @@ console.log(`作品まとめ：${groups.length} 件`);
   const row = (p) => { const s = suggest(p.unmatched); return `<tr><td>${esc(p.date)}</td><td>${esc(p.label)}</td><td><b>${esc(p.unmatched)}</b></td><td>${s ? `もしかして「${esc(s)}」？` : "似た作品なし（まだ登録していない？）"}</td></tr>`; };
   const html = `<!doctype html><html lang="ja"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>作品名チェック</title>
 <style>body{font-family:system-ui,sans-serif;margin:0;padding:20px 16px 48px;max-width:760px;margin-inline:auto;line-height:1.6;background:#f6f4ef;color:#141312}h1{font-size:22px}h2{font-size:16px;margin-top:28px;border-bottom:2px solid #141312}table{width:100%;border-collapse:collapse;font-size:13px}td,th{border-bottom:1px solid #ccc;padding:6px 4px;text-align:left;vertical-align:top}.ok{color:#1a7f37;font-weight:700}small{color:#666}@media(prefers-color-scheme:dark){body{background:#121110;color:#efece4}h2{border-color:#efece4}td,th{border-color:#444}small{color:#aaa}.ok{color:#5fd07d}}</style>
-<h1>作品名チェック（自分用）</h1><p><small>${esc(new Date().toLocaleString("ja-JP", { timeZone: "Asia/Tokyo" }))} 時点。ILLUST LOGの投稿のうち、キャラ（リンク集）のどの作品とも結びついていないものです。</small></p>
+<h1>作品名チェック（自分用）</h1><p><small>${esc(new Date().toLocaleString("ja-JP", { timeZone: "Asia/Tokyo" }))} 時点。CREATIVE LOGの投稿のうち、キャラ（リンク集）のどの作品とも結びついていないものです。</small></p>
 <h2>結びついていないイラスト投稿（${bad.length}件）</h2>${bad.length ? `<table><tr><th>日付</th><th>投稿</th><th>入力した作品名</th><th>候補</th></tr>${bad.map(row).join("")}</table><p><small>直し方：投稿の「キャラぷの作品」を一覧から選び直すか、作品名をキャラ（リンク集）と同じにする。キャラぷのURLを入れても結びつきます。</small></p>` : `<p class="ok">すべて結びついています</p>`}
 <h2>イラストがまだない作品（${noIll.length}件）</h2>${noIll.length ? `<table>${noIll.map((c) => `<tr><td>${esc(c.published)}</td><td>${esc(c.title)}</td></tr>`).join("")}</table>` : `<p class="ok">なし</p>`}
 </html>`;

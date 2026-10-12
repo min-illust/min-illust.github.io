@@ -1,4 +1,4 @@
-# Min. ILLUST LOG 管理画面の設定
+# Min. CREATIVE LOG 管理画面の設定
 backend:
   name: github
   repo: min-illust/min-illust.github.io
@@ -54,7 +54,7 @@ collections:
         value_field: title
         options_length: 100
         required: false
-        hint: "キャラ（リンク集）に登録した作品から選びます。オリジナルは選ばなくてOK（分類をオリジナルにすると自動で「オリジナル」になります）"
+        hint: "キャラ（リンク集）に登録した作品から選びます。オリジナルは選ばなくてOK（分類をORIGINALにすると自動で「オリジナル」になります）"
       - { name: work_name, label: 作品名（一覧にないとき・MVは曲名）, widget: string, required: false, hint: "まだキャラ（リンク集）に登録していない作品はここに手入力。あとで同じ名前で登録すると自動で結びつきます" }
       - name: charas
         label: キャラ名（選んだ作品の登場キャラから・複数OK・任意）
@@ -165,7 +165,7 @@ collections:
         label: イラスト用の別名（任意）
         widget: list
         required: false
-        hint: "ILLUST LOGの作品名がこの作品名と違うときだけ。キャラぷのURLか作品名が一致するイラストは自動で並びます"
+        hint: "CREATIVE LOGの作品名がこの作品名と違うときだけ。キャラぷのURLか作品名が一致するイラストは自動で並びます"
 
   # ── サイト設定 ──
   - name: settings
@@ -184,6 +184,7 @@ collections:
             summary: "{{fields.name}}"
             fields:
               - { name: name, label: 分類名, widget: string }
+              - { name: sub, label: 日本語の小見出し（任意・段の見出しの横に小さく出ます）, widget: string, required: false }
               - { name: description, label: 説明（任意）, widget: string, required: false }
       - name: originals
         label: オリジナルの表紙
@@ -191,7 +192,7 @@ collections:
         format: json
         fields:
           - name: covers
-            label: 表紙（ILLUST LOGの「作品ごとに見る」に出ます）
+            label: 表紙（CREATIVE LOGのORIGINALの段に出ます）
             label_singular: 表紙
             widget: list
             required: false

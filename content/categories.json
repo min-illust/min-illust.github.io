@@ -1,7 +1,19 @@
 {
   "categories": [
-    { "name": "キャラぷ", "description": "キャラぷで公開しているキャラクターたち" },
-    { "name": "オリジナル", "description": "" },
-    { "name": "MV・音楽", "description": "SunoでつくったオリジナルソングとMV" }
+    {
+      "name": "ORIGINAL",
+      "sub": "オリジナル",
+      "description": ""
+    },
+    {
+      "name": "AI CHARACTERS",
+      "sub": "AIキャラクター",
+      "description": "AIと会話して遊べるキャラクターたち"
+    },
+    {
+      "name": "MUSIC & MV",
+      "sub": "音楽・MV",
+      "description": "SunoでつくったオリジナルソングとMV"
+    }
   ]
 }

@@ -200,6 +200,31 @@ img{-webkit-user-drag:none;user-select:none;-webkit-user-select:none;-webkit-tou
 .lb-cap small{display:block;font:700 11px var(--f-mono);color:#aaa;letter-spacing:.06em;margin-top:2px}
 .lb{padding-bottom:120px}
 
+/* 検索 */
+.sform{display:flex;gap:0;margin-top:22px;border:2px solid var(--ink);background:var(--card);box-shadow:3px 3px 0 var(--ink)}
+.sform input{flex:1;min-width:0;border:0;background:transparent;color:var(--ink);font:700 15px var(--f-body);padding:10px 12px;outline:none}
+.sform button{border:0;border-left:2px solid var(--ink);background:var(--ink);color:var(--paper);font:400 14px var(--f-display);padding:0 14px;cursor:pointer}
+/* 曲のしるし */
+.mu{position:absolute;right:5px;top:5px;z-index:1;width:26px;height:26px;border-radius:50%;background:var(--hot);color:#fff;display:flex;align-items:center;justify-content:center;font:700 14px/1 system-ui,sans-serif;box-shadow:0 1px 4px rgba(0,0,0,.35)}
+.gcard .cover{position:relative}
+/* 分類の目次 */
+.chips button{font:700 12px var(--f-body);border:2px solid var(--ink);padding:3px 11px;background:var(--card);color:var(--ink);cursor:pointer}
+.sec-h .sub{font:700 13px var(--f-body);color:var(--ink-soft)}
+.more-cat{display:inline-block;margin-top:14px}
+/* タグから探す */
+.tcloud{display:flex;flex-wrap:wrap;gap:8px}
+.tcloud a{font:700 13px var(--f-body);text-decoration:none;border:2px solid var(--ink);background:var(--card);padding:4px 10px}
+.tcloud a small{font:700 11px var(--f-mono);color:var(--ink-soft);margin-left:4px}
+.tcloud a.ch{background:var(--ink);color:var(--paper)}
+.tcloud a.ch small{color:var(--line)}
+/* 拡大表示のタグと作品へのリンク */
+.lb-cap .lbt{display:flex;flex-wrap:wrap;justify-content:center;gap:6px;margin-top:8px}
+.lb-cap a{pointer-events:auto;text-decoration:none;font:700 12px var(--f-body);border:1.5px solid #fff;color:#fff;padding:2px 8px}
+.lb-cap a.ch{background:#fff;color:#141312}
+.lb-cap a.wk{display:inline-block;margin-top:10px;background:var(--hot);border-color:var(--hot);font:400 14px var(--f-display);padding:6px 14px}
+.lb{padding-bottom:170px}
+.lb-cap{bottom:calc(64px + env(safe-area-inset-bottom,0px))}
+
 @media (prefers-reduced-motion: reduce){.post .flyer{transform:none!important}.tile{transition:none}}
 @media (max-width:480px){.tl{padding-left:26px}.tl::before{left:5px}.post::before{left:-27px}.month{margin-left:-26px}.meta{text-align:left}.tiles{grid-template-columns:1fr 1fr}.tiles.big{grid-template-columns:1fr 1fr}}
 </style>
@@ -208,7 +233,7 @@ img{-webkit-user-drag:none;user-select:none;-webkit-user-select:none;-webkit-tou
 <body>
 <div class="wrap">
   <header class="mast">
-    <a href="__BASE__/"><h1>Min<span class="dot">.</span><small>ILLUST LOG</small></h1></a>
+    <a href="__BASE__/"><h1>Min<span class="dot">.</span><small>CREATIVE LOG</small></h1></a>
     <div class="meta"><b id="count">—</b>WORKS POSTED<br><span id="range"></span></div>
   </header>
   <main id="app" aria-live="polite"><p style="margin-top:32px;font-family:var(--f-mono)">LOADING…</p></main>
@@ -251,7 +276,12 @@ img{-webkit-user-drag:none;user-select:none;-webkit-user-select:none;-webkit-tou
   const groupHref = (key) => `${B.base}/#/g/${enc(key)}`;
   const groupOf = (p) => (D.groups || []).find(g => g.key === p.group);
   // 拡大表示用の画像リスト（一言・名前・日付つき）
-  const lbItems = (p) => p.images.map(im => ({ src: im.src, caption: im.caption || "", label: p.label, date: p.date }));
+  const lbItems = (p) => p.images.map(im => ({ src: im.src, caption: im.caption || "", label: p.label, date: p.date, group: p.group, charas: im.charas || [], tags: im.tags || [] }));
+  // ひらがな・カタカナ、全角・半角、スペースの違いを同じものとして扱う
+  const norm = (s) => String(s ?? "").normalize("NFKC").toLowerCase().replace(/[\u30a1-\u30f6]/g, (ch) => String.fromCharCode(ch.charCodeAt(0) - 0x60)).replace(/\s/g, "");
+  const itHref = (t) => `${B.base}/#/it/${enc(t)}`;   // イラストのタグ
+  const icHref = (c) => `${B.base}/#/ic/${enc(c)}`;   // キャラ名
+  const allImages = () => D.posts.flatMap(p => p.images.map(im => ({ ...im, label: p.label, date: p.date, group: p.group, p })));
   function shot(key, k, im, cls){
     return `<button class="shot${cls ? " " + cls : ""}" data-lb="${key}" data-i="${k}" aria-label="${esc(im.caption || im.label)}を拡大"><img src="${esc(im.thumb || im.src)}" alt="${esc(im.caption || im.label)}" loading="lazy">${im.caption ? `<span class="cap">${esc(im.caption)}</span>` : ""}</button>`;
   }
@@ -264,9 +294,14 @@ img{-webkit-user-drag:none;user-select:none;-webkit-user-select:none;-webkit-tou
       return `<a class="play" href="${esc(m.url)}" target="_blank" rel="noopener"><span class="ic">↗</span><span>リンクを開く<small>${esc(new URL(m.url).hostname)}</small></span></a>`;
     }).join("") + `</div>`;
   }
+  // タグ：作品名 → 作品ページ、キャラ名 → キャラの絵の一覧、それ以外 → タグの絵の一覧
   function tagsHTML(p){
+    const isChara = (t) => (p.charas || []).some(c => norm(c) === norm(t));
     return `<div class="tags"><a class="tag cat" href="${catHref(p.category)}">${esc(p.category)}</a>` +
-      p.tags.map(t => `<a class="tag" href="${tagHref(p.category, t)}">#${esc(t)}</a>`).join("") + `</div>`;
+      p.tags.map(t => {
+        if (p.group && norm(t) === norm(p.work)) return `<a class="tag" href="${groupHref(p.group)}">#${esc(t)}</a>`;
+        return `<a class="tag" href="${isChara(t) ? icHref(t) : itHref(t)}">#${esc(t)}</a>`;
+      }).join("") + `</div>`;
   }
   function stubHTML(p){
     const [y, m, d] = p.date.split("-");
@@ -291,9 +326,11 @@ img{-webkit-user-drag:none;user-select:none;-webkit-user-select:none;-webkit-tou
     let off = 0;
     return list.map(p => { const h = entry(p, key, off, opts); off += p.images.length; return h; }).join("");
   }
+  const isMusicGroup = (g) => g.cats.some(c => (D.categories.find(x => x.name === c) || {}).music) || g.posts.every(s => (D.posts.find(p => p.slug === s) || {}).music);
   function groupCard(g){
     const badge = recent(g.first) ? `<span class="new">NEW</span>` : recent(g.updated) ? `<span class="new up">UP</span>` : "";
-    return `<a class="gcard" href="${groupHref(g.key)}">${badge}<span class="cover">${g.cover ? `<img src="${esc(g.cover)}" alt="" loading="lazy">` : `<span class="ph">♪</span>`}</span><b>${esc(g.name)}</b><small>${g.pics ? g.pics + "枚 · " : ""}${md(g.updated)}</small></a>`;
+    const mu = isMusicGroup(g);
+    return `<a class="gcard" href="${groupHref(g.key)}">${badge}<span class="cover">${g.cover ? `<img src="${esc(g.cover)}" alt="" loading="lazy">` : `<span class="ph">♪</span>`}${mu ? `<span class="mu" aria-label="曲">♪</span>` : ""}</span><b>${esc(g.name)}</b><small>${mu ? `${g.posts.length}曲 · ` : g.pics ? g.pics + "枚 · " : ""}${md(g.updated)}</small></a>`;
   }
   const coverOf = (p) => (p.images[0] && p.images[0].thumb) || (p.media.find(m => m.thumb) || {}).thumb || "";
   const crumbs = (items) => `<nav class="crumbs" aria-label="現在地"><a href="${B.base}/">TOP</a>` +
@@ -301,37 +338,99 @@ img{-webkit-user-drag:none;user-select:none;-webkit-user-select:none;-webkit-tou
 
   // ---- views ----
   let lists = {};
+  const searchForm = (q = "") => `<form class="sform" data-search role="search"><input name="q" type="search" value="${esc(q)}" placeholder="作品名・キャラ名・タグで探す" autocomplete="off" aria-label="検索"><button type="submit">SEARCH</button></form>`;
+  const primaryCat = (g) => g.cats[0];
   function viewTop(cat){
     lists = {};
-    // 新着：最近の画像を1枚ずつ。1つの投稿からは最大2枚（表紙→次の1枚）
+    if (cat) return viewCat(cat);
+    // 新着：最近の画像を1枚ずつ（1つの投稿からは最大2枚）。曲の投稿は♪付きで1枚、押すと曲のページへ
     const items = [];
     D.posts.forEach((p, i) => {
-      if (items.length >= NEW_N || !p.images.length) return;
+      if (items.length >= NEW_N) return;
+      if (p.music) { const cv = coverOf(p); if (cv) items.push({ p, i, music: true, cv }); return; }
+      if (!p.images.length) return;
       lists["n" + i] = lbItems(p);
       const order = [p.coverIdx || 0, ...p.images.map((_, k) => k).filter(k => k !== (p.coverIdx || 0))].slice(0, 2);
       order.forEach((k, j) => { if (items.length < NEW_N) items.push({ p, i, k, more: j === 1 && p.images.length > 2 ? p.images.length - 2 : 0 }); });
     });
     const gname = (p) => (groupOf(p) || {}).name || p.label;
-    const strip = items.map(({ p, i, k, more }) => { const im = p.images[k];
+    const strip = items.map((it) => {
+      const { p, i } = it;
+      if (it.music) {
+        const im = p.images[p.coverIdx || 0];
+        const ratio = im && im.w && im.h ? Math.min(Math.max(im.w / im.h, 0.56), 1.6) : 1;
+        return `<a class="rc" href="${esc(p.url)}" style="text-decoration:none" aria-label="${esc(p.label)}（曲）"><span class="im" style="aspect-ratio:${ratio.toFixed(3)}"><img src="${esc(it.cv)}" alt="" loading="lazy"><span class="mu">♪</span></span><span class="t"><b>${esc(gname(p))}</b><small>${md(p.date)} · MUSIC</small></span></a>`;
+      }
+      const im = p.images[it.k];
       const ratio = im.w && im.h ? Math.min(Math.max(im.w / im.h, 0.56), 1.6) : 0.75;
-      return `<button class="rc" data-lb="n${i}" data-i="${k}" aria-label="${esc(im.caption || p.label)}を拡大"><span class="im" style="aspect-ratio:${ratio.toFixed(3)}"><img src="${esc(im.thumb)}" alt="" loading="lazy">${more ? `<span class="n">+${more}</span>` : ""}</span><span class="t"><b>${esc(im.caption || gname(p))}</b><small>${md(p.date)}${im.caption ? " · " + esc(gname(p)) : ""}</small></span></button>`; }).join("")
-      + (items.length ? `<a class="rc end" href="${allHref}">すべての<br>投稿を見る →</a>` : "");
-    const cats = D.categories.filter(c => c.count > 0);
-    const gs = (D.groups || []).filter(g => !cat || g.cats.includes(cat));
-    const part = gs.slice(0, shown);
-    return `${items.length ? `<section class="sec"><div class="sec-h"><span class="label">NEW</span><h2>新着</h2><em>← SWIPE</em></div><div class="rstrip">${strip}</div></section>` : ""}
-      <section class="sec" style="margin-top:28px"><div class="sec-h"><span class="label">WORKS</span><h2>作品ごとに見る</h2><em>${gs.length} WORKS · 更新順</em></div>
-      ${cats.length > 1 ? `<nav class="chips" aria-label="分類"><a class="chip${cat ? "" : " on"}" href="${B.base}/#/">すべて</a>${cats.map(c => `<a class="chip${c.name === cat ? " on" : ""}" href="${catHref(c.name)}">${esc(c.name)}</a>`).join("")}</nav>` : ""}
+      return `<button class="rc" data-lb="n${i}" data-i="${it.k}" aria-label="${esc(im.caption || p.label)}を拡大"><span class="im" style="aspect-ratio:${ratio.toFixed(3)}"><img src="${esc(im.thumb)}" alt="" loading="lazy">${it.more ? `<span class="n">+${it.more}</span>` : ""}</span><span class="t"><b>${esc(im.caption || gname(p))}</b><small>${md(p.date)}${im.caption ? " · " + esc(gname(p)) : ""}</small></span></button>`;
+    }).join("") + (items.length ? `<a class="rc end" href="${allHref}">すべての<br>投稿を見る →</a>` : "");
+
+    // 分類ごとの段（管理画面の「分類一覧」の順。作品がない段は出さない）
+    const gs = D.groups || [];
+    const known = D.categories.map(c => c.name);
+    const secs = [...D.categories, { name: "OTHER", sub: "そのほか" }].map(c => ({ c, list: gs.filter(g => c.name === "OTHER" ? !known.includes(primaryCat(g)) : primaryCat(g) === c.name) })).filter(x => x.list.length);
+    const SHOW = 9;
+    const secHTML = secs.map(({ c, list }) => `<section class="sec" id="sec-${esc(norm(c.name))}" style="margin-top:34px"><div class="sec-h"><span class="label">${esc(c.name)}</span>${c.sub ? `<h2>${esc(c.sub)}</h2>` : ""}<em>${list.length} WORKS · 更新順</em>${c.description ? `<p class="lead">${esc(c.description)}</p>` : ""}</div>
+      <div class="groups">${list.slice(0, SHOW).map(groupCard).join("")}</div>
+      ${list.length > SHOW ? `<a class="btn more-cat" href="${catHref(c.name)}">${esc(c.sub || c.name)}をもっと見る（${list.length}）→</a>` : ""}</section>`).join("");
+    const nav = secs.length > 1 ? `<nav class="chips" aria-label="分類" style="margin-top:18px">${secs.map(({ c }) => `<button type="button" data-jump="sec-${esc(norm(c.name))}">${esc(c.name)}</button>`).join("")}</nav>` : "";
+
+    // タグから探す（絵に付いたタグとキャラ名を、多い順に）
+    const tcount = new Map(), ccount = new Map();
+    for (const im of allImages()) { for (const t of im.tags || []) tcount.set(t, (tcount.get(t) || 0) + 1); for (const c of im.charas || []) ccount.set(c, (ccount.get(c) || 0) + 1); }
+    const top = (m, n) => [...m.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], "ja")).slice(0, n);
+    const tags = top(tcount, 24), charas = top(ccount, 24);
+    const cloud = tags.length || charas.length ? `<section class="sec" style="margin-top:38px"><div class="sec-h"><span class="label">TAGS</span><h2>タグから探す</h2></div>
+      ${tags.length ? `<div class="tcloud">${tags.map(([t, n]) => `<a href="${itHref(t)}">#${esc(t)}<small>${n}</small></a>`).join("")}</div>` : ""}
+      ${charas.length ? `<div class="sec-h" style="margin-top:18px"><span class="label">CHARACTERS</span><h2 style="font-size:20px">キャラから探す</h2></div><div class="tcloud">${charas.map(([c, n]) => `<a class="ch" href="${icHref(c)}">${esc(c)}<small>${n}</small></a>`).join("")}</div>` : ""}</section>` : "";
+
+    return `${searchForm()}${items.length ? `<section class="sec" style="margin-top:26px"><div class="sec-h"><span class="label">NEW</span><h2>新着</h2><em>← SWIPE</em></div><div class="rstrip">${strip}</div></section>` : ""}
+      ${nav}${secHTML || `<section class="sec">${empty("まだ作品がありません。")}</section>`}${cloud}
+      <p style="margin-top:26px"><a class="ext" href="${allHref}">すべての投稿を日付順で見る →</a></p>`;
+  }
+  // 分類のページ（その分類の作品を全部）
+  function viewCat(cat){
+    const c = D.categories.find(x => x.name === cat) || { name: cat, sub: "" };
+    const list = (D.groups || []).filter(g => primaryCat(g) === cat || (cat === "OTHER" && !D.categories.some(x => x.name === primaryCat(g))));
+    const part = list.slice(0, shown);
+    document.title = `${c.name}｜Min. CREATIVE LOG`;
+    return crumbs([[c.name]]) + `<section class="sec" style="margin-top:20px"><div class="sec-h"><span class="label">${esc(c.name)}</span>${c.sub ? `<h2>${esc(c.sub)}</h2>` : ""}<em>${list.length} WORKS · 更新順</em>${c.description ? `<p class="lead">${esc(c.description)}</p>` : ""}</div>
       ${part.length ? `<div class="groups">${part.map(groupCard).join("")}</div>` : empty("まだ作品がありません。")}
-      ${shown < gs.length ? `<button class="btn morebtn" data-more style="margin-top:20px">もっと見る</button>` : ""}
-      <p style="margin-top:22px"><a class="ext" href="${allHref}">すべての投稿を日付順で見る →</a></p></section>`;
+      ${shown < list.length ? `<button class="btn morebtn" data-more style="margin-top:20px">もっと見る</button>` : ""}</section>`;
+  }
+  // イラストの一覧（タグ／キャラ名から）
+  function viewIll(kind, v){
+    lists = {};
+    const nv = norm(v);
+    const ims = allImages().filter(im => (kind === "ic" ? im.charas : im.tags || []).some(x => norm(x) === nv));
+    lists.ill = ims.map(im => ({ src: im.src, caption: im.caption || "", label: im.label, date: im.date, group: im.group, charas: im.charas || [], tags: im.tags || [] }));
+    const gks = [...new Set(ims.map(im => im.group))].map(k => (D.groups || []).find(g => g.key === k)).filter(Boolean);
+    const title = kind === "ic" ? v : "#" + v;
+    document.title = `${title} のイラスト｜Min. CREATIVE LOG`;
+    return crumbs([[title]]) + `<section class="sec" style="margin-top:20px"><div class="sec-h"><span class="label">${kind === "ic" ? "CHARACTER" : "TAG"}</span><h2>${esc(title)} <span class="sub">のイラスト</span></h2><em>${ims.length} PICS</em></div>
+      ${gks.length ? `<div class="tcloud" style="margin-bottom:14px">${gks.map(g => `<a href="${groupHref(g.key)}">${esc(g.name)} →</a>`).join("")}</div>` : ""}
+      ${ims.length ? `<div class="grid3">${ims.map((im, k) => shot("ill", k, { ...im, label: kind === "ic" ? im.label : (im.charas || []).join("・") || im.label })).join("")}</div>` : empty("まだイラストはありません。")}</section>`;
+  }
+  // 検索（作品とイラストの両方から）
+  function viewSearch(q){
+    lists = {};
+    const words = norm(q) ? String(q).split(/\s+/).map(norm).filter(Boolean) : [];
+    const hit = (arr) => { const hay = norm(arr.join(" ")); return words.every(w => hay.includes(w)); };
+    const gs = words.length ? (D.groups || []).filter(g => { const ps = g.posts.map(s => D.posts.find(p => p.slug === s)).filter(Boolean); return hit([g.name, ...ps.flatMap(p => [...p.tags, p.comment])]); }) : [];
+    const ims = words.length ? allImages().filter(im => hit([im.caption, im.label, ...(im.charas || []), ...(im.tags || []), im.p.work, im.p.comment])) : [];
+    lists.s = ims.map(im => ({ src: im.src, caption: im.caption || "", label: im.label, date: im.date, group: im.group, charas: im.charas || [], tags: im.tags || [] }));
+    document.title = `「${q}」の検索結果｜Min. CREATIVE LOG`;
+    return crumbs([["検索"]]) + searchForm(q) + (words.length ? `
+      <section class="sec" style="margin-top:24px"><div class="sec-h"><span class="label">WORKS</span><h2>作品</h2><em>${gs.length}件</em></div>${gs.length ? `<div class="groups">${gs.map(groupCard).join("")}</div>` : `<p class="lead" style="color:var(--ink-soft)">見つかりませんでした。</p>`}</section>
+      <section class="sec" style="margin-top:28px"><div class="sec-h"><span class="label">ILLUST</span><h2>イラスト</h2><em>${ims.length}枚</em></div>${ims.length ? `<div class="grid3">${ims.map((im, k) => shot("s", k, im)).join("")}</div>` : `<p class="lead" style="color:var(--ink-soft)">見つかりませんでした。</p>`}</section>` : `<p style="margin-top:16px;color:var(--ink-soft)">探したい言葉を入れてください。</p>`);
   }
   function viewGroup(key){
     const g = (D.groups || []).find(x => x.key === key);
     if (!g) return `<div class="empty" style="margin-top:32px"><strong>NOT FOUND</strong><p>この作品は見つかりませんでした。</p><p><a class="btn" href="${B.base}/">トップへ</a></p></div>`;
     lists = {};
     const ps = g.posts.map(s => D.posts.find(p => p.slug === s)).filter(Boolean);
-    document.title = `${g.name}｜Min. ILLUST LOG`;
+    document.title = `${g.name}｜Min. CREATIVE LOG`;
     return crumbs([[g.name]]) + `<section class="gh"><span class="cover">${g.cover ? `<img src="${esc(g.cover)}" alt="">` : `<span class="ph">♪</span>`}</span>
       <div><h2>${esc(g.name)}</h2><p>${g.pics} PICS · ${ps.length} POSTS · ${g.updated.replaceAll("-", ".")} UPDATE</p></div></section>
       ${g.charapu ? `<div class="acts"><a class="btn hot" href="${esc(g.charapu)}" target="_blank" rel="noopener">このキャラと話す ↗</a></div>` : ""}
@@ -355,8 +454,8 @@ img{-webkit-user-drag:none;user-select:none;-webkit-user-select:none;-webkit-tou
     const g = groupOf(p);
     const i = D.posts.indexOf(p), newer = D.posts[i - 1], older = D.posts[i + 1];
     const share = `${B.site}/w/${p.slug}/`;
-    const xText = `${p.label}｜Min. ILLUST LOG` + (B.x ? ` @${B.x}` : "");
-    document.title = `${p.label}｜Min. ILLUST LOG`;
+    const xText = `${p.label}｜Min. CREATIVE LOG` + (B.x ? ` @${B.x}` : "");
+    document.title = `${p.label}｜Min. CREATIVE LOG`;
     const items = p.images.map(im => ({ ...im, label: p.label }));
     const pics = items.length === 1 ? `<div class="solo1">${shot("post", 0, { ...items[0], thumb: items[0].src })}</div>`
       : items.length ? `<div class="grid3">${items.map((im, k) => shot("post", k, im)).join("")}</div>` : "";
@@ -382,6 +481,8 @@ img{-webkit-user-drag:none;user-select:none;-webkit-user-select:none;-webkit-tou
       const h = location.hash.replace(/^#\/?/, "").split("/").map(s => { try { return decodeURIComponent(s); } catch { return s; } });
       if (h[0] === "c" && h[1] && h[2] === "t" && h[3]){ html = viewTag(h[1], h[3]); path = `/c/${h[1]}/t/${h[3]}`; }
       else if (h[0] === "c" && h[1]){ html = viewTop(h[1]); path = `/c/${h[1]}`; }
+      else if ((h[0] === "it" || h[0] === "ic") && h[1]){ html = viewIll(h[0], h.slice(1).join("/")); path = `/${h[0]}/${h.slice(1).join("/")}`; }
+      else if (h[0] === "s"){ html = viewSearch(h.slice(1).join("/")); path = "/s"; }
       else if (h[0] === "g" && h[1]){ html = viewGroup(h.slice(1).join("/")); path = `/g/${h.slice(1).join("/")}`; }
       else if (h[0] === "all"){ html = viewAll(); path = "/all"; }
       else { html = viewTop(); path = "/"; }
@@ -410,12 +511,21 @@ img{-webkit-user-drag:none;user-select:none;-webkit-user-select:none;-webkit-tou
       go(false);
     });
   window.addEventListener("hashchange", () => go(true));
+  document.addEventListener("submit", (e) => {
+    const f = e.target.closest("[data-search]"); if (!f) return;
+    e.preventDefault();
+    const q = f.q.value.trim();
+    location.hash = `#/s/${enc(q)}`;
+  });
 
   // ---- interactions ----
   function showLb(){
     const it = lbList[lbIdx];
     $("lbImg").src = it.src;
-    $("lbCap").innerHTML = it.caption ? `${esc(it.caption)}<small>${esc(it.label)} · ${esc(it.date.replaceAll("-", "."))}</small>` : `${esc(it.label)}<small>${esc(it.date.replaceAll("-", "."))}</small>`;
+    const head = it.caption ? `${esc(it.caption)}<small>${esc(it.label)} · ${esc(it.date.replaceAll("-", "."))}</small>` : `${esc(it.label)}<small>${esc(it.date.replaceAll("-", "."))}</small>`;
+    const tg = [...(it.charas || []).map(c => `<a class="ch" href="${icHref(c)}">#${esc(c)}</a>`), ...(it.tags || []).map(t => `<a href="${itHref(t)}">#${esc(t)}</a>`)].join("");
+    const here = it.group && location.hash === `#/g/${enc(it.group)}`;
+    $("lbCap").innerHTML = head + (tg ? `<div class="lbt">${tg}</div>` : "") + (it.group && !here && !B.post ? `<a class="wk" href="${groupHref(it.group)}">この作品を見る →</a>` : "");
     $("lbBar").hidden = lbList.length < 2;
     $("lbCount").textContent = `${lbIdx + 1} / ${lbList.length}`;
   }
@@ -444,6 +554,9 @@ img{-webkit-user-drag:none;user-select:none;-webkit-user-select:none;-webkit-tou
       ifr.allow = "autoplay; encrypted-media; picture-in-picture; fullscreen"; ifr.allowFullscreen = true;
       f.appendChild(ifr); play.replaceWith(f); return;
     }
+    if (e.target.closest("#lbCap a")){ $("lb").hidden = true; return; } // 作品・タグへ移動（閉じてからリンク先へ）
+    const jb = e.target.closest("[data-jump]");
+    if (jb){ const el = document.getElementById(jb.dataset.jump); if (el) el.scrollIntoView({ behavior: "smooth", block: "start" }); return; }
     const gol = e.target.closest("[data-go]");
     if (gol){ location.href = gol.dataset.go; return; }
     if (e.target.closest("[data-more]")){ shown += PAGE; const y = window.scrollY; route(); window.scrollTo(0, y); return; }
