@@ -236,6 +236,14 @@
     color:var(--paper);font-family:"Anton",sans-serif;font-size:22px}
   .lb-nav.p{left:6px}.lb-nav.n{right:6px}
 
+  /* ===== 作品ページ（/chara/w/作品ID/）===== */
+  .solo{display:none}
+  body.single .solo{display:block;background:var(--paper);color:var(--ink);padding:16px 16px 22px;border-top:4px solid var(--red);box-shadow:5px 5px 0 var(--red)}
+  body.single #pickupLabel,body.single #pickup,body.single #allTop,body.single #filters,body.single #results{display:none}
+  body.single .sh-top{padding-right:0}
+  .copy{display:block;width:100%;margin-top:16px;padding:8px 0;border:2px dashed var(--ink);font-weight:900;font-size:12px}
+  .copy.done{background:var(--ink);color:var(--paper);border-style:solid}
+
   footer{margin-top:44px;text-align:center;font-family:"Space Mono",monospace;font-size:11px;color:var(--muted);letter-spacing:.15em}
 
   @media(max-width:360px){
@@ -253,6 +261,8 @@
     <div class="stamp">ORIGINAL<br>CHARACTERS</div>
     <p class="author">作者：Min.</p>
   </header>
+
+  <section class="solo" id="solo"></section>
 
   <h2 class="label" id="pickupLabel">NEW &amp; UPDATE <small>← SWIPE</small></h2>
   <div class="pickup" id="pickup"></div>
@@ -479,12 +489,10 @@ clr.addEventListener("click",e=>{e.preventDefault();qEl.value="";state.q="";clr.
 /* ================= 詳細シート ================= */
 const sheet=document.getElementById("sheet"), scrim=document.getElementById("scrim");
 let openId=null, galAll=false;
-function openSheet(id,refresh){
-  const c=characters.find(x=>x.id===id); if(!c) return;
-  if(!refresh) galAll=false;
-  openId=id;
+// 作品の詳細（一覧のシートと、作品ページの両方で使う）
+function detailHTML(c,all,solo){
   const ill=illustsFor(c);
-  const shown=galAll?ill:ill.slice(0,GALLERY_PREVIEW);
+  const shown=all?ill:ill.slice(0,GALLERY_PREVIEW);
   const rest=ill.length-shown.length;
   const galHTML=`<div class="gal"><h4>ILLUST <small>${ill.length?ill.length+" 枚":""}</small></h4>${
     ill.length?`<div class="gal-grid">${shown.map((im,k)=>`<button data-gi="${k}"><img src="${esc(im.thumb)}" alt="" loading="lazy">${
@@ -493,13 +501,13 @@ function openSheet(id,refresh){
   const s=status(c), lu=lastUpdate(c);
   const story=c.story&&isKyarapu(c.story), talk=c.talk&&isKyarapu(c.talk);
   const hist=[...(c.updates||[])].sort((a,b)=>b.date.localeCompare(a.date));
-  sheet.innerHTML=`
-    <button class="close" id="closeSheet" aria-label="閉じる">✕</button>
+  return `
+    ${solo?"":`<button class="close" id="closeSheet" aria-label="閉じる">✕</button>`}
     <div class="sh-top">
       <img src="${face(c,idx[c.id])}" alt="${esc(c.title)}">
       <div>
         <div class="sh-badges">${s==="new"?`<span class="bd new">NEW</span>`:s==="up"?`<span class="bd up">UPDATE</span>`:""}</div>
-        <h3 class="sh-title">${esc(c.title)}</h3>
+        ${solo?`<h2 class="sh-title">${esc(c.title)}</h2>`:`<h3 class="sh-title">${esc(c.title)}</h3>`}
         <p class="sh-cat">${esc(c.category)}</p>
         <div class="sh-genres">${(c.genres||[]).map(g=>`<span class="sg">${esc(g)}</span>`).join("")}</div>
       </div>
@@ -512,12 +520,30 @@ function openSheet(id,refresh){
       ${talk?`<a class="btn talk" href="${esc(c.talk)}" target="_blank" rel="noopener">TALK<small>トーク</small></a>`:""}
     </div>
     ${galHTML}
-    ${hist.length?`<div class="hist"><h4>UPDATE LOG</h4><ul>${hist.map(u=>`<li><span>${dot(u.date)}</span>${esc(u.text)}</li>`).join("")}</ul></div>`:""}`;
+    ${hist.length?`<div class="hist"><h4>UPDATE LOG</h4><ul>${hist.map(u=>`<li><span>${dot(u.date)}</span>${esc(u.text)}</li>`).join("")}</ul></div>`:""}
+    ${solo?"":`<button class="copy" id="copyUrl">この作品だけのページのURLをコピー</button>`}`;
+}
+function bindGallery(root,c,onMore){
+  const ill=illustsFor(c);
+  root.querySelectorAll("[data-gi]").forEach(b=>b.onclick=e=>{
+    if(e.target.closest("[data-more]")){onMore();return}
+    lbOpen(ill,+b.dataset.gi)});
+}
+const workUrl=c=>`${location.origin}${BOOT.base||""}/chara/w/${c.id}/`;
+function openSheet(id,refresh){
+  const c=characters.find(x=>x.id===id); if(!c) return;
+  if(!refresh) galAll=false;
+  openId=id;
+  sheet.innerHTML=detailHTML(c,galAll,false);
   sheet.classList.add("on");scrim.classList.add("on");document.body.classList.add("lock");
   document.getElementById("closeSheet").onclick=closeSheet;
-  sheet.querySelectorAll("[data-gi]").forEach(b=>b.onclick=e=>{
-    if(e.target.closest("[data-more]")){galAll=true;openSheet(id,true);return}
-    lbOpen(ill,+b.dataset.gi)});
+  bindGallery(sheet,c,()=>{galAll=true;openSheet(id,true)});
+  const cp=document.getElementById("copyUrl");
+  cp.onclick=async()=>{
+    const u=workUrl(c);
+    try{await navigator.clipboard.writeText(u);cp.textContent="コピーしました";cp.classList.add("done")}
+    catch(e){prompt("この作品だけのページのURL",u)}
+  };
 }
 function closeSheet(){openId=null;sheet.classList.remove("on");scrim.classList.remove("on");document.body.classList.remove("lock")}
 scrim.addEventListener("click",closeSheet);
@@ -528,7 +554,16 @@ document.addEventListener("click",e=>{
   const t=e.target.closest(".pk,.cell,.row"); if(t&&!sheet.contains(t)) openSheet(t.dataset.id);
 });
 
-render();
+/* ================= 作品ページ（その作品だけを表示） ================= */
+const SOLO=BOOT.single&&characters.find(c=>c.id===BOOT.single);
+if(SOLO){
+  document.body.classList.add("single");
+  const box=document.getElementById("solo");
+  box.innerHTML=detailHTML(SOLO,true,true);   // 作品ページではイラストを最初から全部並べる
+  bindGallery(box,SOLO,()=>{});
+}else{
+  render();
+}
 </script>
 </body>
 </html>

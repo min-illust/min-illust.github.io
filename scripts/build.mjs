@@ -243,20 +243,36 @@ characters.sort((a, b) => b.published.localeCompare(a.published) || b.id.localeC
   const tpl = await fs.readFile(path.join(ROOT, "site/chara.html"), "utf8");
   const ctitle = "Min. | Characters";
   const cdesc = "Min.がキャラぷで公開しているキャラクターの一覧";
+  const abs = (u) => (u ? SITE_URL + u.replace(BASE, "") : "");
   const cog = characters.find((c) => c.thumb)?.thumb;
-  const head = [
-    `<title>${ctitle}</title>`,
-    `<meta name="description" content="${esc(cdesc)}">`,
-    `<link rel="canonical" href="${esc(SITE_URL)}/chara/">`,
+  const headOf = ({ title, desc, url, og }) => [
+    `<title>${esc(title)}</title>`,
+    `<meta name="description" content="${esc(desc)}">`,
+    `<link rel="canonical" href="${esc(url)}">`,
     `<meta property="og:type" content="website">`,
-    `<meta property="og:title" content="${ctitle}">`,
-    `<meta property="og:description" content="${esc(cdesc)}">`,
-    cog ? `<meta property="og:image" content="${esc(SITE_URL + cog.replace(BASE, ""))}">` : "",
+    `<meta property="og:title" content="${esc(title)}">`,
+    `<meta property="og:description" content="${esc(desc)}">`,
+    `<meta property="og:url" content="${esc(url)}">`,
+    og ? `<meta property="og:image" content="${esc(og)}">` : "",
   ].filter(Boolean).join("\n");
-  const boot = `<script>window.__CHARA=${JSON.stringify({ updated: new Date().toISOString(), categories: CHARA_CATS, genres: CHARA_GENRES, characters }).replace(/</g, "\\u003c")};</script>`;
+  const bootOf = (data) => `<script>window.__CHARA=${JSON.stringify({ updated: new Date().toISOString(), base: BASE, categories: CHARA_CATS, genres: CHARA_GENRES, ...data }).replace(/</g, "\\u003c")};</script>`;
+
+  // 一覧ページ（/chara/）
   await fs.mkdir(path.join(OUT, "chara"), { recursive: true });
-  await fs.writeFile(path.join(OUT, "chara/index.html"), tpl.replace("<!--HEAD-->", head).replace("<!--BOOT-->", boot));
-  console.log(`キャラリンク集：${characters.length} 体／イラスト紐づけ ${characters.reduce((n, c) => n + c.illusts.length, 0)} 枚`);
+  await fs.writeFile(path.join(OUT, "chara/index.html"),
+    tpl.replace("<!--HEAD-->", headOf({ title: ctitle, desc: cdesc, url: `${SITE_URL}/chara/`, og: abs(cog) }))
+      .replace("<!--BOOT-->", bootOf({ characters })));
+
+  // 作品ごとのページ（/chara/w/作品ID/・その作品だけを表示。キャラぷの作品ページに貼る用）
+  for (const c of characters) {
+    const dir = path.join(OUT, "chara", "w", c.id);
+    await fs.mkdir(dir, { recursive: true });
+    const desc = (c.tagline || `${c.category}｜${c.genres.join(" / ")}`).replace(/\s+/g, " ").slice(0, 120);
+    await fs.writeFile(path.join(dir, "index.html"),
+      tpl.replace("<!--HEAD-->", headOf({ title: `${c.title}｜Min.`, desc, url: `${SITE_URL}/chara/w/${c.id}/`, og: abs(c.thumb || c.illusts[0]?.thumb) }))
+        .replace("<!--BOOT-->", bootOf({ single: c.id, characters: [c] })));
+  }
+  console.log(`キャラリンク集：${characters.length} 作品（作品ページ ${characters.length} 件）／イラスト紐づけ ${characters.reduce((n, c) => n + c.illusts.length, 0)} 枚`);
 }
 
 // 管理画面はNetlify側へ案内
