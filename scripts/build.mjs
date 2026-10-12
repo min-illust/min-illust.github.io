@@ -403,9 +403,14 @@ await fs.writeFile(path.join(OUT, "admin/index.html"), `<!doctype html><meta cha
 // Netlifyの管理画面で画像を確認できるよう、元の画像を /images/ に置く（サイト本体は軽くした img/ を使う）
 if (await exists(path.join(ROOT, "images"))) await fs.cp(path.join(ROOT, "images"), path.join(OUT, "images"), { recursive: true });
 
+// 自分用：透かしツール（/tool/・どこからもリンクしない）
+await fs.mkdir(path.join(OUT, "tool"), { recursive: true });
+await fs.copyFile(path.join(ROOT, "site/tool.html"), path.join(OUT, "tool/index.html"));
+await fs.copyFile(path.join(ROOT, "site/sign.png"), path.join(OUT, "tool/sign.png"));
+
 // AI学習用クローラーへのお断り
 const aiBots = ["GPTBot", "ChatGPT-User", "OAI-SearchBot", "CCBot", "Google-Extended", "anthropic-ai", "ClaudeBot", "Claude-Web", "PerplexityBot", "Bytespider", "Applebot-Extended", "meta-externalagent", "FacebookBot", "cohere-ai", "Diffbot", "ImagesiftBot", "Omgilibot", "Timpibot", "img2dataset", "Amazonbot"];
-await fs.writeFile(path.join(OUT, "robots.txt"), aiBots.map((b) => `User-agent: ${b}\nDisallow: /`).join("\n\n") + `\n\nUser-agent: *\nDisallow: /admin/\nDisallow: /images/\nDisallow: /check/\nAllow: /\n`);
+await fs.writeFile(path.join(OUT, "robots.txt"), aiBots.map((b) => `User-agent: ${b}\nDisallow: /`).join("\n\n") + `\n\nUser-agent: *\nDisallow: /admin/\nDisallow: /images/\nDisallow: /check/\nDisallow: /tool/\nAllow: /\n`);
 await fs.writeFile(path.join(OUT, ".nojekyll"), "");
 await fs.writeFile(path.join(OUT, "404.html"), `<!doctype html><meta charset="utf-8"><title>ページが見つかりません</title><meta http-equiv="refresh" content="3;url=${BASE}/"><p style="font-family:sans-serif;padding:24px">ページが見つかりませんでした。トップに戻ります…</p>`);
 
