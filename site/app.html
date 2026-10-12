@@ -467,5 +467,20 @@ img{-webkit-user-drag:none;user-select:none;-webkit-user-select:none;-webkit-tou
   document.addEventListener("dragstart", guard);
 })();
 </script>
+<!-- ホーム画面から開いたとき（アドレスバーがない）だけ出る更新ボタン -->
+<button id="hsReload" type="button" aria-label="最新に更新" style="display:none;position:fixed;right:max(12px,env(safe-area-inset-right,0px));bottom:calc(12px + env(safe-area-inset-bottom,0px));z-index:80;font:700 13px system-ui,sans-serif;background:#141312;color:#fff;border:2px solid #fff;border-radius:999px;padding:8px 14px;box-shadow:0 2px 8px rgba(0,0,0,.35)">↻ 更新</button>
+<script>
+(function(){
+  var standalone = (window.matchMedia && matchMedia("(display-mode: standalone)").matches) || navigator.standalone === true;
+  var b = document.getElementById("hsReload"); if (!standalone || !b) return;
+  b.style.display = "block";
+  b.onclick = function(){
+    try {
+      var u = new URL(location.href); u.searchParams.set("r", Date.now().toString(36)); // 古いページを使わずに読み直す
+      location.replace(u.toString());
+    } catch (e) { location.reload(); }
+  };
+})();
+</script>
 </body>
 </html>
