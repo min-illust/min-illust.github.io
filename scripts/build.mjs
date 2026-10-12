@@ -98,6 +98,45 @@ const gc = /^[a-z0-9-]{2,50}$/i.test(String(site.goatcounter || "").trim()) ? St
 const xh = String(site.x_handle || "").replace(/^@/, "").match(/^\w{1,15}$/)?.[0] || "";
 const catFile = await readJSON(path.join(ROOT, "content/categories.json"), { categories: [] });
 
+// ---------- キャラリンク集の作品（投稿との紐づけに先に使う） ----------
+const CHARA_CATS = ["1:1ロールプレイ", "シミュレーション"];
+const CHARA_GENRES = ["恋愛", "日常・現代", "ファンタジー", "BL", "その他"];
+const isKyarapu = (u) => {
+  try { const x = new URL(String(u).trim()); return x.protocol === "https:" && (x.hostname === "kyarapu.com" || x.hostname.endsWith(".kyarapu.com")); }
+  catch { return false; }
+};
+const urlKey = (u) => { try { const x = new URL(String(u).trim()); return (x.hostname + x.pathname).replace(/\/+$/, "").toLowerCase(); } catch { return ""; } };
+// ひらがな・カタカナ、全角・半角、スペースの違いを同じものとして扱う
+const normName = (s) => String(s || "").normalize("NFKC").toLowerCase()
+  .replace(/[ァ-ヶ]/g, (ch) => String.fromCharCode(ch.charCodeAt(0) - 0x60)).replace(/\s/g, "");
+const uniqTags = (arr) => { const seen = new Set(), out = []; for (const t of arr) { const v = String(t || "").replace(/^#/, "").trim(); const k = normName(v); if (v && !seen.has(k)) { seen.add(k); out.push(v); } } return out; };
+
+const charaDir = path.join(ROOT, "content/characters");
+const charaFiles = (await exists(charaDir)) ? (await fs.readdir(charaDir)).filter((f) => f.endsWith(".json")) : [];
+const works = []; // { id, f, raw, title, charas, keys, names }
+for (const f of charaFiles) {
+  const raw = await readJSON(path.join(charaDir, f), null);
+  if (!raw || !raw.title || !day(raw.published)) { console.warn("読み込めないキャラ:", f); continue; }
+  const title = String(raw.title).trim();
+  works.push({
+    id: f.replace(/\.json$/, "").replace(/[^\w-]/g, "-"), f, raw, title,
+    charas: uniqTags(list(raw.charas)),
+    keys: [raw.story, raw.talk].filter((u) => u && isKyarapu(u)).map(urlKey),
+    names: [title, ...list(raw.illust_tags)].map(normName).filter(Boolean),
+  });
+}
+// 投稿 → 作品：キャラぷのURLが同じ > 作品名（または別名）が同じ > 旧データのタグが作品名と同じ
+function findWork(charapu, names, oldTags) {
+  const k = charapu ? urlKey(charapu) : "";
+  let w = k && works.find((x) => x.keys.includes(k));
+  if (w) return w;
+  const ns = names.map(normName).filter(Boolean);
+  w = ns.length && works.find((x) => x.names.some((n) => ns.includes(n)));
+  if (w) return w;
+  const ts = oldTags.map(normName);
+  return works.find((x) => x.names.some((n) => ts.includes(n))) || null;
+}
+
 const postDir = path.join(ROOT, "content/posts");
 const files = (await exists(postDir)) ? (await fs.readdir(postDir)).filter((f) => f.endsWith(".json")) : [];
 const posts = [];
@@ -105,29 +144,44 @@ for (const f of files) {
   const raw = await readJSON(path.join(postDir, f), null);
   if (!raw || !day(raw.date)) { console.warn("読み込めない作品:", f); continue; }
   const slug = f.replace(/\.json$/, "").replace(/[^\w-]/g, "-");
-  // 画像は「画像だけ（文字列）」と「画像＋一言」の両方に対応
+  // 画像は「画像だけ（文字列）」と「画像＋一言＋表紙」の両方に対応
   const rawImgs = Array.isArray(raw.images) ? raw.images : raw.images ? [raw.images] : raw.image ? [raw.image] : [];
   const images = [];
+  let coverIdx = -1;
   for (const it of rawImgs) {
     const src = typeof it === "string" ? it : it && (it.src || it.url || it.image);
     if (!src) continue;
     const r = await processImage(String(src).trim());
-    if (r) images.push({ ...r, caption: it && typeof it === "object" ? String(it.caption || "").trim() : "" });
+    if (!r) continue;
+    const obj = it && typeof it === "object";
+    if (obj && it.cover && coverIdx < 0) coverIdx = images.length;
+    images.push({ ...r, caption: obj ? String(it.caption || "").trim() : "" });
   }
   const media = [];
   for (const m of list(raw.media)) { const r = await parseMedia(m); if (r) media.push(r); }
   const title = String(raw.title || "").trim();
-  const tags = [...new Set(list(raw.tags).map((t) => t.replace(/^#/, "")))];
+  const category = String(raw.category || "その他");
+  const isOrig = category === "オリジナル";
+  const tags = uniqTags(list(raw.tags));
+  const charapu = isHttps(String(raw.charapu || "").trim()) ? String(raw.charapu).trim() : "";
+  const workSel = String(raw.work || "").trim(), workName = String(raw.work_name || "").trim();
+  const w = isOrig ? null : findWork(charapu, [workSel, workName].filter(Boolean), tags);
+  const work = w ? w.title : workSel || workName || (isOrig ? "オリジナル" : "");
+  let charas = uniqTags(list(raw.charas));
+  if (!charas.length && w && w.charas.length === 1) charas = [w.charas[0]]; // 1人だけの作品はキャラ名を自動で
+  // 旧データ：作品名・キャラ名がタグに入っている場合は、属性タグから外す
+  const attr = tags.filter((t) => normName(t) !== normName(work) && !charas.some((c) => normName(c) === normName(t)) && !(w && w.names.includes(normName(t))));
   const [, mm, dd] = day(raw.date).split("-");
   posts.push({
     slug, title, date: day(raw.date),
-    label: title || tags[0] || `${+mm}/${+dd}の作品`, // タイトルなしのときの表示名
-    category: String(raw.category || "その他"),
-    images, media,
+    label: title || (isOrig ? charas[0] || "オリジナル" : work || charas[0] || attr[0]) || `${+mm}/${+dd}の作品`, // タイトルなしのときの表示名
+    category, images, media, coverIdx: coverIdx < 0 ? 0 : coverIdx,
     comment: String(raw.comment || ""),
-    tags,
-    charapu: isHttps(String(raw.charapu || "").trim()) ? String(raw.charapu).trim() : "",
-    pickup: !!raw.pickup,
+    work, workId: w ? w.id : "", charas,
+    tags: uniqTags([work, ...charas, ...attr]), // 表示するタグ：作品名 → キャラ名 → 属性の順
+    attrs: attr,
+    unmatched: !w && !isOrig && (workSel || category === "キャラぷ") ? (workSel || workName || "（作品名なし）") : "",
+    charapu, pickup: !!raw.pickup,
     url: `${BASE}/w/${slug}/`,
   });
 }
@@ -135,7 +189,7 @@ posts.sort((a, b) => b.date.localeCompare(a.date) || b.slug.localeCompare(a.slug
 
 const catNames = [...new Set([...(catFile.categories || []).map((c) => String(c.name || "").trim()).filter(Boolean), ...posts.map((p) => p.category)])];
 const catDesc = Object.fromEntries((catFile.categories || []).map((c) => [String(c.name || "").trim(), String(c.description || "")]));
-const coverOf = (p) => p.images[0]?.thumb || p.media.find((m) => m.thumb)?.thumb || "";
+const coverOf = (p) => p.images[p.coverIdx]?.thumb || p.images[0]?.thumb || p.media.find((m) => m.thumb)?.thumb || "";
 const categories = catNames.map((name) => {
   const ps = posts.filter((p) => p.category === name);
   return { name, description: catDesc[name] || "", count: ps.length, cover: ps.map(coverOf).find(Boolean) || "" };
@@ -171,21 +225,11 @@ for (const p of posts) {
   const dir = path.join(OUT, "w", p.slug);
   await fs.mkdir(dir, { recursive: true });
   const desc = (p.comment || `${p.category}｜${p.tags.map((t) => "#" + t).join(" ")}`).replace(/\s+/g, " ").slice(0, 120);
-  await fs.writeFile(path.join(dir, "index.html"), page({ title: `${p.label}｜${siteTitle}`, desc, url: `${SITE_URL}/w/${p.slug}/`, og: p.images[0]?.og || defaultOg, post: p.slug }));
+  await fs.writeFile(path.join(dir, "index.html"), page({ title: `${p.label}｜${siteTitle}`, desc, url: `${SITE_URL}/w/${p.slug}/`, og: (p.images[p.coverIdx] || p.images[0])?.og || defaultOg, post: p.slug }));
 }
 
 // ---------- キャラリンク集（/chara/・キャラぷに貼る用） ----------
 // キャラぷ以外へのリンクは出さない。イラストは ILLUST LOG の作品から自動で紐づけ（リンクはせず画像だけ）。
-const CHARA_CATS = ["1:1ロールプレイ", "シミュレーション"];
-const CHARA_GENRES = ["恋愛", "日常・現代", "ファンタジー", "BL", "その他"];
-const isKyarapu = (u) => {
-  try { const x = new URL(String(u).trim()); return x.protocol === "https:" && (x.hostname === "kyarapu.com" || x.hostname.endsWith(".kyarapu.com")); }
-  catch { return false; }
-};
-const urlKey = (u) => { try { const x = new URL(String(u).trim()); return (x.hostname + x.pathname).replace(/\/+$/, "").toLowerCase(); } catch { return ""; } };
-const normName = (s) => String(s || "").normalize("NFKC").toLowerCase()
-  .replace(/[\u30a1-\u30f6]/g, (ch) => String.fromCharCode(ch.charCodeAt(0) - 0x60)).replace(/\s/g, "");
-
 // サムネ：正方形に切り抜き（顔が入りやすいよう注目領域を優先）
 const thumbDone = new Map();
 async function charaThumb(src) {
@@ -212,13 +256,9 @@ async function charaThumb(src) {
   return r;
 }
 
-const charaDir = path.join(ROOT, "content/characters");
-const charaFiles = (await exists(charaDir)) ? (await fs.readdir(charaDir)).filter((f) => f.endsWith(".json")) : [];
 const characters = [];
-const postWork = new Map(); // 投稿 → キャラリンク集の作品
-for (const f of charaFiles) {
-  const raw = await readJSON(path.join(charaDir, f), null);
-  if (!raw || !raw.title || !day(raw.published)) { console.warn("読み込めないキャラ:", f); continue; }
+for (const w of works) {
+  const { raw, f } = w;
   const story = isKyarapu(raw.story || "") ? String(raw.story).trim() : "";
   const talk = isKyarapu(raw.talk || "") ? String(raw.talk).trim() : "";
   if (raw.story && !story) console.warn("キャラぷ以外のURLなので外しました:", f, raw.story);
@@ -227,30 +267,19 @@ for (const f of charaFiles) {
   const updates = (Array.isArray(raw.updates) ? raw.updates : [])
     .map((u) => ({ date: day(u && u.date), text: String((u && u.text) || "").trim() }))
     .filter((u) => u.date && u.text).sort((a, b) => b.date.localeCompare(a.date));
-
-  // イラストの紐づけ：キャラぷURLが同じ作品 or タグがキャラ名（別名）と同じ作品
-  const keys = [story, talk].filter(Boolean).map(urlKey);
-  const names = [raw.title, ...list(raw.illust_tags)].map(normName).filter(Boolean);
   const illusts = [];
-  const cid = f.replace(/\.json$/, "").replace(/[^\w-]/g, "-");
-  for (const p of posts) {
-    const byUrl = p.charapu && keys.includes(urlKey(p.charapu));
-    const byTag = p.tags.some((t) => names.includes(normName(t)));
-    if (byUrl || byTag) {
-      for (const im of p.images) illusts.push({ src: im.src, thumb: im.thumb, title: im.caption || p.label, date: p.date });
-      // ILLUST LOG の「作品ごとのまとめ」用（キャラぷのURLが一致する作品を優先）
-      const cur = postWork.get(p.slug);
-      if (!cur || (byUrl && !cur.byUrl)) postWork.set(p.slug, { id: cid, title: String(raw.title).trim(), byUrl: !!byUrl });
-    }
-  }
-
+  for (const p of posts) if (p.workId === w.id) for (const im of p.images) illusts.push({ src: im.src, thumb: im.thumb, title: im.caption || p.label, date: p.date });
+  // タグ：作品名 → 登場キャラ名 → 属性（旧データで作品名・キャラ名がタグにあっても二重にしない）
+  const attr = uniqTags(list(raw.tags)).filter((t) => normName(t) !== normName(w.title) && !w.charas.some((c) => normName(c) === normName(t)));
   characters.push({
-    id: cid,
-    title: String(raw.title).trim(),
+    id: w.id,
+    title: w.title,
     category: CHARA_CATS.includes(raw.category) ? raw.category : CHARA_CATS[0],
     genres: genres.length ? genres : ["その他"],
     tagline: String(raw.tagline || "").trim(),
-    tags: [...new Set(list(raw.tags).map((t) => t.replace(/^#/, "")))],
+    charas: w.charas,
+    tags: uniqTags([w.title, ...w.charas, ...attr]),
+    featured: !!raw.featured,
     published: day(raw.published),
     thumb: await charaThumb(raw.thumb),
     story, talk, updates, illusts,
@@ -274,7 +303,8 @@ characters.sort((a, b) => b.published.localeCompare(a.published) || b.id.localeC
     `<meta property="og:url" content="${esc(url)}">`,
     og ? `<meta property="og:image" content="${esc(og)}">` : "",
   ].filter(Boolean).join("\n");
-  const bootOf = (data) => `<script>window.__CHARA=${JSON.stringify({ updated: new Date().toISOString(), base: BASE, categories: CHARA_CATS, genres: CHARA_GENRES, ...data }).replace(/</g, "\\u003c")};</script>`;
+  const analytics = gc ? `<script data-goatcounter="https://${gc}.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>` : "";
+  const bootOf = (data) => `<script>window.__CHARA=${JSON.stringify({ updated: new Date().toISOString(), base: BASE, categories: CHARA_CATS, genres: CHARA_GENRES, ...data }).replace(/</g, "\\u003c")};</script>` + analytics;
 
   // 一覧ページ（/chara/）
   await fs.mkdir(path.join(OUT, "chara"), { recursive: true });
@@ -295,24 +325,56 @@ characters.sort((a, b) => b.published.localeCompare(a.published) || b.id.localeC
 }
 
 // ---------- ILLUST LOG：作品ごとのまとめ ----------
-// キャラぷの作品はキャラリンク集と同じルールで1つに。それ以外はタグの1つ目でまとめる。
+// キャラぷの作品は作品単位（シミュも1つ）。オリジナルはキャラ名ごと（名前なしは「オリジナル」）。それ以外は作品名（MVは曲名）。
+const origFile = await readJSON(path.join(ROOT, "content/originals.json"), { covers: [] });
+const origCovers = new Map();
+for (const c of origFile.covers || []) { const n = normName(c && c.name); if (n && c.image) origCovers.set(n, await charaThumb(c.image)); }
 const groupMap = new Map();
 for (const p of posts) { // posts は新しい順
-  const w = postWork.get(p.slug);
-  const key = w ? `w:${w.id}` : p.tags[0] ? `t:${p.tags[0]}` : p.title ? `n:${p.title}` : `c:${p.category}`;
-  const name = w ? w.title : p.tags[0] || p.title || p.category;
+  let key, name;
+  if (p.workId) { key = `w:${p.workId}`; name = p.work; }
+  else if (p.category === "オリジナル") { key = `o:${normName(p.charas[0] || "")}`; name = p.charas[0] || "オリジナル"; }
+  else if (p.work) { key = `n:${normName(p.work)}`; name = p.work; }
+  else if (p.attrs[0]) { key = `t:${normName(p.attrs[0])}`; name = p.attrs[0]; }
+  else { key = `c:${p.category}`; name = p.category; }
   p.group = key;
   let g = groupMap.get(key);
-  if (!g) groupMap.set(key, g = { key, name, updated: p.date, cover: "", cats: [], posts: [], pics: 0, charapu: "" });
+  if (!g) groupMap.set(key, g = { key, name, updated: p.date, first: p.date, cover: "", cats: [], posts: [], pics: 0, charapu: "" });
   g.posts.push(p.slug);
   g.pics += p.images.length;
-  if (!g.cover) g.cover = coverOf(p);
+  g.first = p.date;                    // いちばん古い投稿の日付（NEW/UPの判定用）
+  const cv = coverOf(p); if (cv) g.cover = cv; // 表紙はいちばん古い投稿の表紙で固定（下で上書きあり）
   if (!g.charapu && p.charapu) g.charapu = p.charapu;
   if (!g.cats.includes(p.category)) g.cats.push(p.category);
+}
+for (const g of groupMap.values()) {
+  if (g.key.startsWith("w:")) { const c = characters.find((x) => `w:${x.id}` === g.key); if (c && c.thumb) g.cover = c.thumb; }      // キャラぷ：キャラリンク集の顔
+  if (g.key.startsWith("o:")) { const cv = origCovers.get(normName(g.name)); if (cv) g.cover = cv; }                                  // オリジナル：専用の表紙
 }
 const groups = [...groupMap.values()].sort((a, b) => b.updated.localeCompare(a.updated));
 await fs.writeFile(path.join(OUT, "data/site.json"), JSON.stringify({ updated: new Date().toISOString(), categories, posts, groups }));
 console.log(`作品まとめ：${groups.length} 件`);
+
+// ---------- 自分用：作品名のチェック（/check/・どこからもリンクしない） ----------
+{
+  const lev = (a, b) => { const m = a.length, n = b.length, d = Array.from({ length: m + 1 }, (_, i) => [i, ...Array(n).fill(0)]); for (let j = 1; j <= n; j++) d[0][j] = j;
+    for (let i = 1; i <= m; i++) for (let j = 1; j <= n; j++) d[i][j] = Math.min(d[i - 1][j] + 1, d[i][j - 1] + 1, d[i - 1][j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1)); return d[m][n]; };
+  const suggest = (name) => { const n = normName(name); let best = null;
+    for (const w of works) { const dist = lev(n, normName(w.title)); if (!best || dist < best.dist) best = { title: w.title, dist }; }
+    return best && best.dist <= Math.max(2, Math.ceil(n.length * 0.3)) ? best.title : ""; };
+  const bad = posts.filter((p) => p.unmatched);
+  const noIll = characters.filter((c) => !c.illusts.length);
+  const row = (p) => { const s = suggest(p.unmatched); return `<tr><td>${esc(p.date)}</td><td>${esc(p.label)}</td><td><b>${esc(p.unmatched)}</b></td><td>${s ? `もしかして「${esc(s)}」？` : "似た作品なし（まだ登録していない？）"}</td></tr>`; };
+  const html = `<!doctype html><html lang="ja"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>作品名チェック</title>
+<style>body{font-family:system-ui,sans-serif;margin:0;padding:20px 16px 48px;max-width:760px;margin-inline:auto;line-height:1.6;background:#f6f4ef;color:#141312}h1{font-size:22px}h2{font-size:16px;margin-top:28px;border-bottom:2px solid #141312}table{width:100%;border-collapse:collapse;font-size:13px}td,th{border-bottom:1px solid #ccc;padding:6px 4px;text-align:left;vertical-align:top}.ok{color:#1a7f37;font-weight:700}small{color:#666}@media(prefers-color-scheme:dark){body{background:#121110;color:#efece4}h2{border-color:#efece4}td,th{border-color:#444}small{color:#aaa}.ok{color:#5fd07d}}</style>
+<h1>作品名チェック（自分用）</h1><p><small>${esc(new Date().toLocaleString("ja-JP", { timeZone: "Asia/Tokyo" }))} 時点。ILLUST LOGの投稿のうち、キャラ（リンク集）のどの作品とも結びついていないものです。</small></p>
+<h2>結びついていないイラスト投稿（${bad.length}件）</h2>${bad.length ? `<table><tr><th>日付</th><th>投稿</th><th>入力した作品名</th><th>候補</th></tr>${bad.map(row).join("")}</table><p><small>直し方：投稿の「キャラぷの作品」を一覧から選び直すか、作品名をキャラ（リンク集）と同じにする。キャラぷのURLを入れても結びつきます。</small></p>` : `<p class="ok">すべて結びついています</p>`}
+<h2>イラストがまだない作品（${noIll.length}件）</h2>${noIll.length ? `<table>${noIll.map((c) => `<tr><td>${esc(c.published)}</td><td>${esc(c.title)}</td></tr>`).join("")}</table>` : `<p class="ok">なし</p>`}
+</html>`;
+  await fs.mkdir(path.join(OUT, "check"), { recursive: true });
+  await fs.writeFile(path.join(OUT, "check/index.html"), html);
+  console.log(`作品名チェック：結びついていない投稿 ${bad.length} 件`);
+}
 
 // 管理画面はNetlify側へ案内（ログインの仕組みがNetlifyのため）
 await fs.mkdir(path.join(OUT, "admin"), { recursive: true });
@@ -322,7 +384,7 @@ if (await exists(path.join(ROOT, "images"))) await fs.cp(path.join(ROOT, "images
 
 // AI学習用クローラーへのお断り
 const aiBots = ["GPTBot", "ChatGPT-User", "OAI-SearchBot", "CCBot", "Google-Extended", "anthropic-ai", "ClaudeBot", "Claude-Web", "PerplexityBot", "Bytespider", "Applebot-Extended", "meta-externalagent", "FacebookBot", "cohere-ai", "Diffbot", "ImagesiftBot", "Omgilibot", "Timpibot", "img2dataset", "Amazonbot"];
-await fs.writeFile(path.join(OUT, "robots.txt"), aiBots.map((b) => `User-agent: ${b}\nDisallow: /`).join("\n\n") + `\n\nUser-agent: *\nDisallow: /admin/\nDisallow: /images/\nAllow: /\n`);
+await fs.writeFile(path.join(OUT, "robots.txt"), aiBots.map((b) => `User-agent: ${b}\nDisallow: /`).join("\n\n") + `\n\nUser-agent: *\nDisallow: /admin/\nDisallow: /images/\nDisallow: /check/\nAllow: /\n`);
 await fs.writeFile(path.join(OUT, ".nojekyll"), "");
 await fs.writeFile(path.join(OUT, "404.html"), `<!doctype html><meta charset="utf-8"><title>ページが見つかりません</title><meta http-equiv="refresh" content="3;url=${BASE}/"><p style="font-family:sans-serif;padding:24px">ページが見つかりませんでした。トップに戻ります…</p>`);
 

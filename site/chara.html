@@ -118,6 +118,13 @@
   .chip.on{background:var(--red);border-color:var(--red);color:var(--paper)}
 
   .hint{font-size:10px;color:var(--muted);margin-top:5px}
+  .has{display:flex;gap:6px;margin-top:8px}
+  .has button{flex:1;padding:5px 0;font-family:"Anton",sans-serif;font-size:13px;letter-spacing:.08em;border:1.5px solid var(--paper)}
+  .has button small{font-family:"Zen Kaku Gothic New",sans-serif;font-size:10px;font-weight:700;letter-spacing:0;margin-left:4px}
+  .has button.on[data-h="story"]{background:var(--paper);color:var(--ink)}
+  .has button.on[data-h="talk"]{background:var(--red);border-color:var(--red)}
+  .pk .k.rec{background:var(--yellow);color:var(--ink);border:2px solid var(--ink)}
+  .recs-top .pk{background:var(--paper)}
   .meta{display:flex;justify-content:space-between;align-items:center;margin-top:8px;gap:8px}
   .count{font-family:"Space Mono",monospace;font-size:11px;color:var(--yellow);letter-spacing:.06em}
   .tools{display:flex;gap:6px;align-items:center}
@@ -253,7 +260,7 @@
   /* ===== 作品ページ（/chara/w/作品ID/）===== */
   .solo{display:none}
   body.single .solo{display:block;background:var(--paper);color:var(--ink);padding:16px 16px 22px;border-top:4px solid var(--red);box-shadow:5px 5px 0 var(--red)}
-  body.single #pickupLabel,body.single #pickup,body.single #allTop,body.single #filters,body.single #results{display:none}
+  body.single #recLabel,body.single #rec,body.single #pickupLabel,body.single #pickup,body.single #allTop,body.single #filters,body.single #results{display:none}
   body.single .sh-top{padding-right:0}
   .copy{display:block;width:100%;margin-top:16px;padding:8px 0;border:2px dashed var(--ink);font-weight:900;font-size:12px}
   .copy.done{background:var(--ink);color:var(--paper);border-style:solid}
@@ -278,6 +285,9 @@
 
   <section class="solo" id="solo"></section>
 
+  <h2 class="label" id="recLabel">RECOMMEND <small>おすすめ</small></h2>
+  <div class="pickup recs-top" id="rec"></div>
+
   <h2 class="label" id="pickupLabel">NEW &amp; UPDATE <small>← SWIPE</small></h2>
   <div class="pickup" id="pickup"></div>
 
@@ -292,6 +302,10 @@
     <div class="cats" id="cats"></div>
     <div class="genres" id="genres"></div>
     <p class="hint">ジャンルは複数タップで掛け合わせ（例：BL × ファンタジー）</p>
+    <div class="has" id="has">
+      <button data-h="story">STORY<small>ストーリーあり</small></button>
+      <button data-h="talk">TALK<small>トークあり</small></button>
+    </div>
     <div class="tagon" id="tagOn"></div>
     <div class="meta">
       <span class="count" id="count"></span>
@@ -407,6 +421,19 @@ st.addEventListener("touchend",e=>{if(tx==null)return;const dx=e.changedTouches[
   if(Math.abs(dx)>40&&lbList.length>1)lbStep(dx<0?1:-1)});
 st.addEventListener("click",e=>{if(e.target===st)lbClose()});
 
+/* ================= おすすめ（管理画面でチェックした作品） ================= */
+(function renderRec(){
+  const items=characters.filter(c=>c.featured);
+  if(!items.length){document.getElementById("rec").remove();document.getElementById("recLabel").remove();return}
+  document.getElementById("rec").innerHTML=items.map(c=>`
+    <button class="pk" data-id="${esc(c.id)}">
+      <span class="k rec">PICK</span>
+      <img src="${face(c,idx[c.id])}" alt="">
+      <p class="n">${esc(c.title)}</p>
+      <p class="w">${esc((c.charas||[]).join("・")||c.category)}</p>
+    </button>`).join("");
+})();
+
 /* ================= ピックアップ ================= */
 (function renderPickup(){
   const ev=[];
@@ -429,7 +456,7 @@ st.addEventListener("click",e=>{if(e.target===st)lbClose()});
 })();
 
 /* ================= 絞り込み ================= */
-const state={q:"",cat:"all",genres:new Set(),sort:"new",view:"grid",tag:""};
+const state={q:"",cat:"all",genres:new Set(),sort:"new",view:"grid",tag:"",has:new Set()};
 const CHARA_TOP=`${BOOT.base||""}/chara/`;
 document.querySelector(".logo a").href=CHARA_TOP;
 try{ state.tag=new URLSearchParams(location.search).get("tag")||""; }catch(e){}
@@ -446,9 +473,11 @@ function filtered(){
   let arr=characters.filter(c=>{
     if(state.cat!=="all"&&c.category!==state.cat) return false;
     if(state.tag&&!(c.tags||[]).some(t=>norm(t)===norm(state.tag))) return false;
+    if(state.has.has("story")&&!c.story) return false;
+    if(state.has.has("talk")&&!c.talk) return false;
     for(const g of state.genres){ if(!(c.genres||[]).includes(g)) return false; }
     if(q.length){
-      const hay=norm([c.title,c.tagline,...(c.genres||[]),c.category,...(c.tags||[])].join(" "));
+      const hay=norm([c.title,c.tagline,...(c.genres||[]),c.category,...(c.tags||[]),...(c.charas||[])].join(" "));
       if(!q.every(w=>hay.includes(w))) return false;
     }
     return true;
@@ -486,7 +515,10 @@ function render(){
 }
 
 // タグで絞り込み（URLにも残すので、共有・戻るでも同じ状態になる）
+// アクセス解析（GoatCounter）にタグのクリックを記録
+function countTag(t){ try{ if(t&&window.goatcounter&&goatcounter.count) goatcounter.count({path:"chara-tag/"+t,title:"タグ：#"+t,event:true}); }catch(e){} }
 function setTag(t){
+  countTag(t);
   state.tag=t;
   try{ history.replaceState(null,"",t?`?tag=${encodeURIComponent(t)}`:location.pathname); }catch(e){}
   render(); jumpToResults();
@@ -508,6 +540,10 @@ document.getElementById("genres").addEventListener("click",e=>{
   document.querySelectorAll("#genres [data-v]").forEach(x=>x.classList.toggle("on",
     x.dataset.v==="all"?state.genres.size===0:state.genres.has(x.dataset.v)));
   render();jumpToResults()});
+document.getElementById("has").addEventListener("click",e=>{
+  const b=e.target.closest("[data-h]");if(!b)return;
+  const h=b.dataset.h; state.has.has(h)?state.has.delete(h):state.has.add(h);
+  b.classList.toggle("on",state.has.has(h)); render(); jumpToResults()});
 document.getElementById("view").addEventListener("click",e=>{
   const b=e.target.closest("[data-v]");if(!b)return;state.view=b.dataset.v;setOn("view",state.view);render()});
 document.getElementById("sort").addEventListener("change",e=>{state.sort=e.target.value;render()});
@@ -565,7 +601,7 @@ function recsHTML(c){
 function bindTags(root,solo){
   root.querySelectorAll("[data-tag]").forEach(b=>b.onclick=()=>{
     const t=b.dataset.tag;
-    if(solo){ location.href=`${CHARA_TOP}?tag=${encodeURIComponent(t)}`; return; }
+    if(solo){ countTag(t); setTimeout(()=>{location.href=`${CHARA_TOP}?tag=${encodeURIComponent(t)}`},150); return; }
     closeSheet(); setTag(t);
   });
 }

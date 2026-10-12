@@ -25,11 +25,13 @@
       "caption": "ちびキャラ"
     }
   ],
-  "tags": [
-    "真壁伊織",
-    "お前がいる所に俺もいる"
-  ],
+  "tags": [],
   "pickup": false,
   "category": "キャラぷ",
-  "comment": ""
+  "comment": "",
+  "work": "お前がいる所に俺もいる",
+  "work_name": "",
+  "charas": [
+    "真壁伊織"
+  ]
 }

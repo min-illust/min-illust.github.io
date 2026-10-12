@@ -34,7 +34,7 @@ collections:
       - { label: ピックアップだけ, field: pickup, pattern: true }
     editor: { preview: false }
     fields:
-      - { name: title, label: タイトル（任意）, widget: string, required: false, hint: "なしでもOK。なしのときはタグの1つ目が名前として使われます" }
+      - { name: title, label: タイトル（任意）, widget: string, required: false, hint: "なしでもOK。なしのときは作品名かキャラ名が名前として使われます" }
       - { name: date, label: 日付, widget: datetime, format: "YYYY-MM-DD", date_format: "YYYY-MM-DD", time_format: false, default: "{{now}}" }
       - name: category
         label: 分類
@@ -44,6 +44,18 @@ collections:
         search_fields: ["categories.*.name"]
         display_fields: ["categories.*.name"]
         value_field: "categories.*.name"
+      - name: work
+        label: キャラぷの作品（一覧から選ぶ）
+        widget: relation
+        collection: characters
+        search_fields: [title]
+        display_fields: [title]
+        value_field: title
+        options_length: 100
+        required: false
+        hint: "キャラ（リンク集）に登録した作品から選びます。オリジナルは選ばなくてOK（分類をオリジナルにすると自動で「オリジナル」になります）"
+      - { name: work_name, label: 作品名（一覧にないとき・MVは曲名）, widget: string, required: false, hint: "まだキャラ（リンク集）に登録していない作品はここに手入力。あとで同じ名前で登録すると自動で結びつきます" }
+      - { name: charas, label: キャラ名（任意・複数OK）, label_singular: キャラ名, widget: list, required: false, hint: "1人だけの作品なら空でOK（キャラ（リンク集）の登場キャラ名が自動で入ります）。シミュや名前のあるオリジナルキャラのときだけ入れてください" }
       - name: images
         label: 画像（複数OK・任意）
         label_singular: 画像
@@ -53,6 +65,7 @@ collections:
         fields:
           - { name: src, label: 画像, widget: image, choose_url: false }
           - { name: caption, label: 一言（任意・拡大したときに絵の下に出ます）, widget: string, required: false }
+          - { name: cover, label: 表紙にする（新着の1枚目になります。なしなら1枚目の画像）, widget: boolean, default: false, required: false }
       - name: media
         label: 曲・動画のURL（Suno / YouTube・任意）
         label_singular: URL
@@ -61,7 +74,7 @@ collections:
         hint: "Sunoの曲ページ、YouTubeの動画ページ（限定公開もOK）のURLを貼ってください"
         field: { name: url, label: URL, widget: string }
       - { name: comment, label: コメント（任意）, widget: text, required: false }
-      - { name: tags, label: タグ（キャラ名・作品名など・カンマ区切り・任意）, widget: list, required: false }
+      - { name: tags, label: タグ（幼馴染・同居など・カンマ区切り・任意）, widget: list, required: false, hint: "作品名とキャラ名は自動でタグになるので、ここには入れなくてOK" }
       - { name: charapu, label: キャラぷのURL（あるときだけ）, widget: string, required: false, hint: "入れると「このキャラと話す」ボタンが出ます" }
       - { name: pickup, label: ピックアップ（将来のポートフォリオ用・今はサイトに表示されません）, widget: boolean, default: false, required: false }
 
@@ -97,7 +110,9 @@ collections:
         min: 1
         options: ["恋愛", "日常・現代", "ファンタジー", "BL", "その他"]
       - { name: tagline, label: 一言紹介, widget: text, required: false }
-      - { name: tags, label: タグ（カンマ区切り・任意）, widget: list, required: false }
+      - { name: charas, label: 登場キャラ名（複数OK）, label_singular: キャラ名, widget: list, required: false, hint: "シミュなら全員分。作品名とキャラ名は自動でタグになります" }
+      - { name: tags, label: タグ（幼馴染・同居など・カンマ区切り・任意）, widget: list, required: false, hint: "作品名とキャラ名は自動でタグになるので、ここには入れなくてOK" }
+      - { name: featured, label: おすすめに表示（一覧の上に固定で出ます）, widget: boolean, default: false, required: false }
       - { name: thumb, label: サムネ（顔のイラスト・正方形に自動で切り抜き）, widget: image, choose_url: false, required: false }
       - name: story
         label: ストーリーのURL（キャラぷ・あるときだけ）
@@ -123,7 +138,7 @@ collections:
         label: イラスト用の別名（任意）
         widget: list
         required: false
-        hint: "ILLUST LOGのタグがキャラ名と違うときだけ（例：岳人）。キャラぷのURLかキャラ名が一致する作品は自動で並びます"
+        hint: "ILLUST LOGの作品名がこの作品名と違うときだけ。キャラぷのURLか作品名が一致するイラストは自動で並びます"
 
   # ── サイト設定 ──
   - name: settings
@@ -143,6 +158,20 @@ collections:
             fields:
               - { name: name, label: 分類名, widget: string }
               - { name: description, label: 説明（任意）, widget: string, required: false }
+      - name: originals
+        label: オリジナルの表紙
+        file: content/originals.json
+        format: json
+        fields:
+          - name: covers
+            label: 表紙（ILLUST LOGの「作品ごとに見る」に出ます）
+            label_singular: 表紙
+            widget: list
+            required: false
+            summary: "{{fields.name}}"
+            fields:
+              - { name: name, label: キャラ名（名前のないオリジナルは「オリジナル」）, widget: string }
+              - { name: image, label: 表紙の画像, widget: image, choose_url: false }
       - name: site
         label: サイト情報
         file: content/site.json
