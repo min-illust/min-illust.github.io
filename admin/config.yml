@@ -35,7 +35,7 @@ collections:
     editor: { preview: false }
     fields:
       - { name: title, label: タイトル（任意）, widget: string, required: false, hint: "なしでもOK。なしのときはタグの1つ目が名前として使われます" }
-      - { name: date, label: 日付, widget: datetime, format: "YYYY-MM-DD", date_format: "YYYY-MM-DD", time_format: false }
+      - { name: date, label: 日付, widget: datetime, format: "YYYY-MM-DD", date_format: "YYYY-MM-DD", time_format: false, default: "{{now}}" }
       - name: category
         label: 分類
         widget: relation
