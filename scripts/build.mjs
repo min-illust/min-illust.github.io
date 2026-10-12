@@ -9,7 +9,7 @@ const OUT = path.join(ROOT, "_site");
 const CACHE = path.join(ROOT, ".cache", "img");
 const SITE_URL = (process.env.SITE_URL || "https://min-illust.github.io").replace(/\/$/, "");
 const BASE = (process.env.BASE_PATH || "").replace(/\/$/, ""); // "" か "/repo名"
-const ADMIN_URL = `${SITE_URL}${BASE}/admin/`;
+const ADMIN_URL = "https://min-illust.netlify.app/admin/";
 
 let sharp = null;
 try { sharp = (await import("sharp")).default; } catch { console.warn("sharp なし：画像は圧縮せずにコピーします"); }
@@ -22,12 +22,14 @@ const list = (v) => (Array.isArray(v) ? v : v ? String(v).split(/[,、]/) : [])
   .map((x) => (typeof x === "string" ? x : x && (x.src || x.url || x.image)) || "")
   .map((x) => String(x).trim()).filter(Boolean);
 const isHttps = (u) => /^https:\/\//i.test(u);
+// 画像パス：「/images/〜」と「https://min-illust.github.io/images/〜」のどちらでも images/〜 として読む
+const imgRel = (src) => String(src || "").trim().replace(/^https?:\/\/min-illust\.github\.io\/images\//i, "images/").replace(/^\/+/, "");
 
 // ---------- 画像 ----------
 const imgDone = new Map();
 async function processImage(src) {
   if (imgDone.has(src)) return imgDone.get(src);
-  const rel = src.replace(/^\/+/, "");
+  const rel = imgRel(src);
   const file = path.join(ROOT, rel);
   if (!rel.startsWith("images/") || !(await exists(file))) { console.warn("画像が見つかりません:", src); imgDone.set(src, null); return null; }
   const buf = await fs.readFile(file);
@@ -189,7 +191,7 @@ const thumbDone = new Map();
 async function charaThumb(src) {
   if (!src) return "";
   if (thumbDone.has(src)) return thumbDone.get(src);
-  const rel = String(src).replace(/^\/+/, "");
+  const rel = imgRel(src);
   const file = path.join(ROOT, rel);
   if (!rel.startsWith("images/") || !(await exists(file))) { console.warn("キャラのサムネが見つかりません:", src); thumbDone.set(src, ""); return ""; }
   const buf = await fs.readFile(file);
@@ -312,10 +314,10 @@ const groups = [...groupMap.values()].sort((a, b) => b.updated.localeCompare(a.u
 await fs.writeFile(path.join(OUT, "data/site.json"), JSON.stringify({ updated: new Date().toISOString(), categories, posts, groups }));
 console.log(`作品まとめ：${groups.length} 件`);
 
-// 管理画面（GitHub Pages で公開。設定は GitHub の admin/config.yml を直接読む）
+// 管理画面はNetlify側へ案内（ログインの仕組みがNetlifyのため）
 await fs.mkdir(path.join(OUT, "admin"), { recursive: true });
-await fs.copyFile(path.join(ROOT, "admin/index.html"), path.join(OUT, "admin/index.html"));
-// 管理画面で画像を確認できるよう、元の画像も /images/ に置く（サイト本体は軽くした img/ を使う）
+await fs.writeFile(path.join(OUT, "admin/index.html"), `<!doctype html><meta charset="utf-8"><meta name="robots" content="noindex"><meta http-equiv="refresh" content="0;url=${ADMIN_URL}"><a href="${ADMIN_URL}">管理画面へ</a>`);
+// Netlifyの管理画面で画像を確認できるよう、元の画像を /images/ に置く（サイト本体は軽くした img/ を使う）
 if (await exists(path.join(ROOT, "images"))) await fs.cp(path.join(ROOT, "images"), path.join(OUT, "images"), { recursive: true });
 
 // AI学習用クローラーへのお断り

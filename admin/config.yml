@@ -12,7 +12,7 @@ display_url: https://min-illust.github.io/
 
 # 管理画面から上げた画像の保存場所（サイトには自動で軽くした版が出ます）
 media_folder: images
-public_folder: /images
+public_folder: https://min-illust.github.io/images  # 管理画面で画像を表示するため、GitHub Pages に置いた元画像を指す
 
 collections:
   # ── 作品（1件ずつ保存） ──
