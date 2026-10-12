@@ -521,7 +521,7 @@ function detailHTML(c,all,solo){
     </div>
     ${galHTML}
     ${hist.length?`<div class="hist"><h4>UPDATE LOG</h4><ul>${hist.map(u=>`<li><span>${dot(u.date)}</span>${esc(u.text)}</li>`).join("")}</ul></div>`:""}
-    ${solo?"":`<button class="copy" id="copyUrl">この作品だけのページのURLをコピー</button>`}`;
+    <button class="copy" data-share="1">この作品をシェア</button>`;
 }
 function bindGallery(root,c,onMore){
   const ill=illustsFor(c);
@@ -538,11 +538,16 @@ function openSheet(id,refresh){
   sheet.classList.add("on");scrim.classList.add("on");document.body.classList.add("lock");
   document.getElementById("closeSheet").onclick=closeSheet;
   bindGallery(sheet,c,()=>{galAll=true;openSheet(id,true)});
-  const cp=document.getElementById("copyUrl");
-  cp.onclick=async()=>{
-    const u=workUrl(c);
-    try{await navigator.clipboard.writeText(u);cp.textContent="コピーしました";cp.classList.add("done")}
-    catch(e){prompt("この作品だけのページのURL",u)}
+  bindShare(sheet,c);
+}
+// シェア：スマホは共有メニュー、使えないときはURLをコピー
+function bindShare(root,c){
+  const b=root.querySelector("[data-share]"); if(!b) return;
+  b.onclick=async()=>{
+    const url=workUrl(c), title=`${c.title}｜Min.`;
+    if(navigator.share){ try{await navigator.share({title,url});}catch(e){} return; }
+    try{await navigator.clipboard.writeText(url);b.textContent="URLをコピーしました";b.classList.add("done")}
+    catch(e){prompt("この作品のURL",url)}
   };
 }
 function closeSheet(){openId=null;sheet.classList.remove("on");scrim.classList.remove("on");document.body.classList.remove("lock")}
@@ -561,6 +566,7 @@ if(SOLO){
   const box=document.getElementById("solo");
   box.innerHTML=detailHTML(SOLO,true,true);   // 作品ページではイラストを最初から全部並べる
   bindGallery(box,SOLO,()=>{});
+  bindShare(box,SOLO);
 }else{
   render();
 }
