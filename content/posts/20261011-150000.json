@@ -1,19 +1,34 @@
 {
+  "title": "",
   "date": "2026-10-12",
-  "pickup": false,
-  "images": [
-    {
-      "src": "https://min-illust.github.io/images/スチル_16.png",
-      "caption": "ハロウィン"
-    }
-  ],
-  "charapu": "https://s.kyarapu.com/s/6acc5a681337c2616521ecfe",
-  "tags": [],
   "category": "キャラぷ",
   "work": "クズな兄貴とその腹黒親友",
   "work_name": "",
   "charas": [
     "九条陽太",
     "宮瀬春臣"
-  ]
+  ],
+  "images": [
+    {
+      "src": "https://min-illust.github.io/images/スチル_16.png",
+      "caption": "ハロウィン",
+      "cover": false
+    },
+    {
+      "src": "/images/スチル_20.png",
+      "caption": "サングラス",
+      "cover": false
+    },
+    {
+      "src": "/images/スチル_21.png",
+      "caption": "ひと休み",
+      "cover": false
+    }
+  ],
+  "images_bulk": [],
+  "media": [],
+  "comment": "",
+  "tags": [],
+  "charapu": "https://s.kyarapu.com/s/6acc5a681337c2616521ecfe",
+  "pickup": false
 }
