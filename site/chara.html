@@ -200,6 +200,23 @@
   .sg{font-size:11px;font-weight:900;background:var(--red);color:var(--paper);padding:1px 7px}
   .sh-tl{font-size:14px;line-height:1.65;margin-top:14px;white-space:pre-line;overflow-wrap:anywhere}
   .sh-tl.fold{display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden}
+  /* あらすじ・キャラプロフィール */
+  .syn{margin-top:14px}
+  .syn h4,.prof h4{font-family:"Anton",sans-serif;font-size:14px;letter-spacing:.1em;color:var(--red)}
+  .syn p{font-size:14px;line-height:1.7;margin-top:2px;white-space:pre-line;overflow-wrap:anywhere}
+  .prof{margin-top:14px}
+  .prof-grid{display:grid;gap:8px;margin-top:4px}
+  @media(min-width:480px){.prof-grid.many{grid-template-columns:1fr 1fr}}
+  .pf{border:2px solid var(--ink);background:#fbf8f0;padding:8px 10px}
+  .pf b{display:block;font-weight:900;font-size:14px}
+  .pf dl{display:grid;grid-template-columns:auto 1fr;gap:2px 10px;margin-top:4px;font-size:12px}
+  .pf dt{font-weight:900;color:#6b655a;white-space:nowrap}
+  .pf dd{margin:0;overflow-wrap:anywhere}
+  .pf .rest{display:none}
+  .pf.open .rest{display:contents}
+  .pf button{margin-top:4px;font-size:11px;font-weight:900;color:var(--red);padding:0}
+  .bday{display:inline-block;margin-left:6px;background:var(--yellow);color:var(--ink);font-size:11px;font-weight:900;padding:0 6px;border:1.5px solid var(--ink);vertical-align:middle}
+  .cake{position:absolute;left:-4px;top:-8px;font-size:18px;line-height:1;filter:drop-shadow(0 1px 1px rgba(0,0,0,.5))}
   .tl-more{display:block;margin-top:4px;font-size:12px;font-weight:900;color:var(--red);padding:2px 0}
   .tags{display:flex;flex-wrap:wrap;gap:4px;margin-top:10px}
   .tag{font-size:11px;font-weight:700;border:1.5px solid var(--ink);padding:1px 6px;font-family:inherit;color:var(--ink);background:none;cursor:pointer}
@@ -520,7 +537,7 @@ function filtered(){
     if(q.length){
       // イラストに付けたタグ・キャラ名・一言も検索の対象に
       const ill=(c.illusts||[]).flatMap(i=>[i.title,...(i.tags||[]),...(i.charas||[])]);
-      const hay=norm([c.title,c.tagline,...(c.genres||[]),c.category,...(c.tags||[]),...(c.charas||[]),...ill].join(" "));
+      const hay=norm([c.title,c.tagline,...(c.genres||[]),c.category,...(c.tags||[]),...(c.charas||[]),c.synopsis,...(c.profiles||[]).flatMap(pf=>[pf.name,...pf.items.map(i=>i.value)]),...ill].join(" "));
       if(!q.every(w=>hay.includes(w))) return false;
     }
     return true;
@@ -539,7 +556,7 @@ function render(){
   if(state.tag) document.getElementById("tagOff").onclick=()=>setTag("");
   document.getElementById("count").textContent=`${arr.length} / ${characters.length} CHARA`;
   if(!arr.length){box.innerHTML=`<p class="empty"><b>NO HIT</b>条件に合うキャラがいません</p>`;return}
-  const badge=c=>{const s=status(c);return s?`<span class="mini ${s}">${s==="new"?"NEW":"UP"}</span>`:""};
+  const badge=c=>{const s=status(c);return (hasBday(c)?`<span class="cake" title="今日が誕生日">🎂</span>`:"")+(s?`<span class="mini ${s}">${s==="new"?"NEW":"UP"}</span>`:"")};
   if(state.view==="grid"){
     box.innerHTML=`<div class="grid">${arr.map(c=>`
       <button class="cell" data-id="${esc(c.id)}">
@@ -597,6 +614,24 @@ clr.addEventListener("click",e=>{e.preventDefault();qEl.value="";state.q="";clr.
 /* ================= 詳細シート ================= */
 const sheet=document.getElementById("sheet"), scrim=document.getElementById("scrim");
 let openId=null, galAll=false;
+// ===== キャラプロフィール（誕生日の当日は🎂） =====
+const JST=new Date(Date.now()+9*3600e3), TM=JST.getUTCMonth()+1, TD=JST.getUTCDate();
+const isBday=pf=>pf.bm===TM&&pf.bd===TD;
+const hasBday=c=>(c.profiles||[]).some(isBday);
+const PF_SHOW=4; // 最初に見せる行数（残りは「もっと見る」）
+function profilesHTML(c){
+  const ps=c.profiles||[]; if(!ps.length) return "";
+  return `<div class="prof"><h4>PROFILE</h4><div class="prof-grid${ps.length>1?" many":""}">${ps.map(pf=>{
+    const rows=[...(pf.birthday?[["誕生日",pf.birthday]]:[]),...pf.items.map(i=>[i.label,i.value])];
+    const html=rows.map(([k,v],i)=>`${i===PF_SHOW?'<div class="rest">':""}<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`).join("")+(rows.length>PF_SHOW?"</div>":"");
+    return `<div class="pf"><b>${esc(pf.name)}${isBday(pf)?`<span class="bday">🎂 HAPPY BIRTHDAY</span>`:""}</b><dl>${html}</dl>${rows.length>PF_SHOW?`<button data-pf="1">もっと見る ▼</button>`:""}</div>`;
+  }).join("")}</div></div>`;
+}
+document.addEventListener("click",e=>{
+  const b=e.target.closest("[data-pf]"); if(!b) return;
+  const card=b.closest(".pf"); const open=card.classList.toggle("open");
+  b.textContent=open?"閉じる ▲":"もっと見る ▼";
+});
 // 紹介文が長いときは4行で畳む（イラストまでのスクロールを短く）
 const longTl=t=>{const s=String(t||"");return s.split("\n").length>4||s.length>110};
 document.addEventListener("click",e=>{
@@ -627,7 +662,8 @@ function detailHTML(c,all,solo){
         <div class="sh-genres">${(c.genres||[]).map(g=>`<span class="sg">${esc(g)}</span>`).join("")}</div>
       </div>
     </div>
-    ${longTl(c.tagline)?`<p class="sh-tl fold">${esc(c.tagline)}</p><button class="tl-more" data-tl="1">続きを読む ▼</button>`:`<p class="sh-tl">${esc(c.tagline)}</p>`}
+    ${c.synopsis?`<div class="syn"><h4>あらすじ</h4><p>${esc(c.synopsis)}</p></div>`:longTl(c.tagline)?`<p class="sh-tl fold">${esc(c.tagline)}</p><button class="tl-more" data-tl="1">続きを読む ▼</button>`:`<p class="sh-tl">${esc(c.tagline)}</p>`}
+    ${profilesHTML(c)}
     <div class="tags">${(c.tags||[]).map(t=>`<button class="tag" data-tag="${esc(t)}">#${esc(t)}</button>`).join("")}</div>
     <p class="sh-date">RELEASE ${dot(c.published)}${lu?` / UPDATE ${dot(lu)}`:""}</p>
     <div class="btns">

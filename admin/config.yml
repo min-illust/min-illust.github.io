@@ -136,7 +136,28 @@ collections:
         multiple: true
         min: 1
         options: ["恋愛", "日常・現代", "ファンタジー", "BL", "その他"]
-      - { name: tagline, label: 一言紹介, widget: text, required: false }
+      - { name: tagline, label: 一言紹介（キャラぷと同じ説明文・あらすじがないときに出ます）, widget: text, required: false }
+      - { name: synopsis, label: あらすじ（短め・作品ページの最初に出ます）, widget: text, required: false, hint: "2〜4行くらいがおすすめ。入れると作品ページでは一言紹介の代わりにこちらが出ます" }
+      - name: profiles
+        label: キャラプロフィール（ここでしか見られない情報・任意）
+        label_singular: キャラ
+        widget: list
+        required: false
+        summary: "{{fields.name}}"
+        hint: "シミュなら1人ずつ追加。内容が空の項目はサイトに出ません。物語のネタバレになる情報は入れない方が安心です"
+        fields:
+          - { name: name, label: キャラ名, widget: string }
+          - { name: birthday, label: 誕生日（任意・例：3/14）, widget: string, required: false, hint: "「3/14」や「3月14日」の形で。当日はサイトに🎂マークが付きます" }
+          - name: items
+            label: 項目（追加・削除・並べ替えOK）
+            label_singular: 項目
+            widget: list
+            required: false
+            summary: "{{fields.label}}：{{fields.value}}"
+            default: [{ label: 血液型 }, { label: 身長 }, { label: 好きな食べ物 }, { label: 苦手なもの }, { label: 趣味 }]
+            fields:
+              - { name: label, label: 項目名, widget: string }
+              - { name: value, label: 内容, widget: string, required: false }
       - { name: charas, label: 登場キャラ名（複数OK）, label_singular: キャラ名, widget: list, required: false, hint: "シミュなら全員分。作品名とキャラ名は自動でタグになります" }
       - { name: tags, label: タグ（幼馴染・同居など・カンマ区切り・任意）, widget: list, required: false, hint: "作品名とキャラ名は自動でタグになるので、ここには入れなくてOK" }
       - { name: featured, label: おすすめに表示（一覧の上に固定で出ます）, widget: boolean, default: false, required: false }

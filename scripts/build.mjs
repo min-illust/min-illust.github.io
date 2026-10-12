@@ -305,6 +305,14 @@ for (const w of works) {
     category: CHARA_CATS.includes(raw.category) ? raw.category : CHARA_CATS[0],
     genres: genres.length ? genres : ["その他"],
     tagline: String(raw.tagline || "").trim(),
+    synopsis: String(raw.synopsis || "").trim(),
+    // キャラプロフィール：空の項目は出さない。誕生日は「月/日」に読み替える（「3/14」「3月14日」「03-14」など）
+    profiles: (Array.isArray(raw.profiles) ? raw.profiles : []).map((pf) => {
+      const bt = String((pf && pf.birthday) || "").normalize("NFKC").trim();
+      const m = bt.match(/(\d{1,2})\s*[\/月\-.]\s*(\d{1,2})/);
+      const items = (Array.isArray(pf && pf.items) ? pf.items : []).map((it) => ({ label: String((it && it.label) || "").trim(), value: String((it && it.value) || "").trim() })).filter((it) => it.label && it.value);
+      return { name: String((pf && pf.name) || "").trim(), birthday: bt, bm: m ? +m[1] : 0, bd: m ? +m[2] : 0, items };
+    }).filter((pf) => pf.name && (pf.birthday || pf.items.length)),
     charas: w.charas,
     tags: uniqTags([w.title, ...w.charas, ...attr]),
     featured: !!raw.featured,
