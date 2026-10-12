@@ -25,7 +25,7 @@ collections:
     create: true
     delete: true
     slug: "{{year}}{{month}}{{day}}-{{hour}}{{minute}}{{second}}"
-    identifier_field: title
+    identifier_field: date  # タイトルは任意なので、必ず入る日付を識別用にする
     summary: "{{date}}｜{{category}}｜{{title}}"
     sortable_fields: [date, title, category]
     view_groups:
