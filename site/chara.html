@@ -255,6 +255,20 @@
   .lb-cap{padding:10px 16px 22px;color:var(--paper);text-align:center}
   .lb-cap b{font-weight:900;font-size:14px}
   .lb-cap span{display:block;font-family:"Space Mono",monospace;font-size:11px;color:var(--muted);margin-top:2px}
+  .lb-tags{display:flex;flex-wrap:wrap;justify-content:center;gap:6px;margin-top:8px}
+  .lb-tags button{font-size:12px;font-weight:700;border:1.5px solid var(--paper);color:var(--paper);padding:2px 8px}
+  .lb-tags button.ch{background:var(--paper);color:var(--ink)}
+  .lb-work{display:inline-block;margin-top:10px;background:var(--red);color:var(--paper);text-decoration:none;font-family:"Anton",sans-serif;font-size:15px;letter-spacing:.06em;padding:6px 14px}
+  /* イラスト一覧（タグ・キャラ名から） */
+  .illv{display:none;background:var(--paper);color:var(--ink);padding:16px 16px 22px;border-top:4px solid var(--red);box-shadow:5px 5px 0 var(--red)}
+  body.ill .illv{display:block}
+  body.ill #recLabel,body.ill #rec,body.ill #pickupLabel,body.ill #pickup,body.ill #allTop,body.ill #filters,body.ill #results{display:none}
+  .illv .back{font-size:12px;font-weight:900;color:var(--red);text-decoration:none}
+  .illv h2{font-weight:900;font-size:22px;line-height:1.3;margin-top:8px;overflow-wrap:anywhere}
+  .illv .sub{font-family:"Space Mono",monospace;font-size:11px;color:#6b655a;margin-top:2px}
+  .illv .works{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+  .illv .works a{font-size:12px;font-weight:900;text-decoration:none;color:var(--paper);background:var(--ink);padding:4px 10px}
+  .illv .gal-grid button p{position:absolute;left:0;right:0;bottom:0;background:linear-gradient(transparent,rgba(14,14,14,.8));color:var(--paper);font-size:10px;font-weight:700;padding:10px 4px 3px;text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .lb-nav{position:absolute;top:50%;transform:translateY(-50%);width:40px;height:56px;background:rgba(241,235,221,.12);
     color:var(--paper);font-family:"Anton",sans-serif;font-size:22px}
   .lb-nav.p{left:6px}.lb-nav.n{right:6px}
@@ -289,6 +303,7 @@
   </header>
 
   <section class="solo" id="solo"></section>
+  <section class="illv" id="illv"></section>
 
   <h2 class="label" id="recLabel">RECOMMEND <small>おすすめ</small></h2>
   <div class="pickup recs-top" id="rec"></div>
@@ -404,16 +419,30 @@ const idx={}; characters.forEach((c,i)=>idx[c.id]=i);
 
 /* ================= イラスト（公開時に ILLUST LOG から自動で紐づけ済み） ================= */
 const illustPosts=[];
-function illustsFor(c){ return c.illusts || []; }
+const illCache={};
+function illustsFor(c){ return illCache[c.id] ||= (c.illusts||[]).map(i=>({...i,wid:c.id,wtitle:c.title})); }
+const ALL_ILL=()=>characters.flatMap(illustsFor).sort((a,b)=>String(b.date).localeCompare(String(a.date)));
+// イラストのタグ・キャラ名から、イラスト一覧へ（キャラ一覧の中だけで移動）
+function goIll(kind,v){
+  try{ if(window.goatcounter&&goatcounter.count) goatcounter.count({path:`chara-${kind==="ic"?"chara":"illust-tag"}/${v}`,title:(kind==="ic"?"キャラ：":"イラストのタグ：#")+v,event:true}); }catch(e){}
+  setTimeout(()=>{ location.href=`${CHARA_TOP}?${kind}=${encodeURIComponent(v)}`; },120);
+}
 
 /* ライトボックス（ページ内で拡大。外部リンクなし） */
 const lb=document.getElementById("lb"),lbImg=document.getElementById("lbImg");
 let lbList=[],lbI=0;
 function lbShow(){const it=lbList[lbI];lbImg.src=it.src;
   document.getElementById("lbCount").textContent=`${lbI+1} / ${lbList.length}`;
-  document.getElementById("lbCap").innerHTML=`<b>${esc(it.title)}</b><span>${esc(dot(it.date||""))}</span>`;
+  const here=typeof SOLO!=="undefined"&&SOLO&&SOLO.id===it.wid;
+  document.getElementById("lbCap").innerHTML=`<b>${esc(it.title)}</b><span>${esc(dot(it.date||""))}${it.wtitle&&it.wtitle!==it.title?` · ${esc(it.wtitle)}`:""}</span>
+    <div class="lb-tags">${(it.charas||[]).map(c=>`<button class="ch" data-ic="${esc(c)}">#${esc(c)}</button>`).join("")}${(it.tags||[]).map(t=>`<button data-it="${esc(t)}">#${esc(t)}</button>`).join("")}</div>
+    ${it.wid&&!here?`<a class="lb-work" href="${CHARA_TOP}w/${esc(it.wid)}/">この作品を見る →</a>`:""}`;
   document.getElementById("lbP").style.display=document.getElementById("lbN").style.display=lbList.length>1?"":"none";}
 function lbOpen(list,i){lbList=list;lbI=i;lbShow();lb.classList.add("on")}
+document.getElementById("lbCap").addEventListener("click",e=>{
+  const b=e.target.closest("[data-ic],[data-it]"); if(!b) return;
+  b.dataset.ic?goIll("ic",b.dataset.ic):goIll("it",b.dataset.it);
+});
 function lbClose(){lb.classList.remove("on");lbImg.removeAttribute("src")}
 const lbStep=d=>{lbI=(lbI+d+lbList.length)%lbList.length;lbShow()};
 document.getElementById("lbX").onclick=lbClose;
@@ -660,6 +689,7 @@ document.addEventListener("click",e=>{
 }));
 
 /* ================= 作品ページ（その作品だけを表示） ================= */
+const ILLQ=(()=>{try{const q=new URLSearchParams(location.search);if(q.get("ic"))return{kind:"ic",v:q.get("ic")};if(q.get("it"))return{kind:"it",v:q.get("it")};}catch(e){}return{};})();
 const SOLO=BOOT.single&&characters.find(c=>c.id===BOOT.single);
 if(SOLO){
   document.body.classList.add("single");
@@ -668,6 +698,20 @@ if(SOLO){
   bindGallery(box,SOLO,()=>{});
   bindShare(box,SOLO);
   bindTags(box,true);
+}else if(ILLQ.kind){
+  // ?it=タグ（イラストのタグ） / ?ic=キャラ名 のイラスト一覧
+  document.body.classList.add("ill");
+  const v=ILLQ.v, nv=norm(v);
+  const list=ALL_ILL().filter(i=>ILLQ.kind==="ic"?(i.charas||[]).some(c=>norm(c)===nv):(i.tags||[]).some(t=>norm(t)===nv));
+  const works=[...new Map(list.map(i=>[i.wid,i.wtitle])).entries()];
+  const box=document.getElementById("illv");
+  box.innerHTML=`<a class="back" href="${CHARA_TOP}">← すべての作品へ</a>
+    <h2>${ILLQ.kind==="ic"?esc(v):"#"+esc(v)}<small style="font-size:13px;font-weight:700"> のイラスト</small></h2>
+    <p class="sub">${list.length} 枚</p>
+    ${works.length?`<div class="works">${works.map(([id,t])=>`<a href="${CHARA_TOP}w/${esc(id)}/">${esc(t)} →</a>`).join("")}</div>`:""}
+    ${list.length?`<div class="gal-grid">${list.map((im,k)=>`<button data-li="${k}"><img src="${esc(im.thumb)}" alt="" loading="lazy"><p>${esc(ILLQ.kind==="ic"?im.title:(im.charas||[]).join("・")||im.wtitle)}</p></button>`).join("")}</div>`:`<p class="gal-note">まだイラストはありません</p>`}`;
+  box.querySelectorAll("[data-li]").forEach(b=>b.onclick=()=>lbOpen(list,+b.dataset.li));
+  document.title=`${ILLQ.kind==="ic"?v:"#"+v} のイラスト｜Min.`;
 }else{
   render();
   // タグ付きで来たときは、絞り込んだ一覧まで下げて見せる

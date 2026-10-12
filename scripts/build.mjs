@@ -155,10 +155,11 @@ for (const f of files) {
     if (!r) continue;
     const obj = it && typeof it === "object";
     if (obj && it.cover && coverIdx < 0) coverIdx = images.length;
-    images.push({ ...r, caption: obj ? String(it.caption || "").trim() : "" });
+    images.push({ ...r, caption: obj ? String(it.caption || "").trim() : "", ownCharas: obj ? list(it.charas) : [], ownTags: obj ? list(it.tags) : [] });
   }
   // まとめて追加した画像は、1枚ずつの画像のあとに並べる。一言は「上から順に1行ずつ」、表紙は「何枚目か」
   const bulkCaps = String(raw.bulk_captions || "").split(/\r?\n/);
+  const bulkTags = String(raw.bulk_tags || "").split(/\r?\n/);
   const bulkCover = parseInt(raw.bulk_cover, 10);
   let bi = 0;
   for (const src of list(raw.images_bulk)) {
@@ -166,7 +167,7 @@ for (const f of files) {
     const r = await processImage(src);
     if (!r || images.some((x) => x.src === r.src)) continue;
     if (coverIdx < 0 && bulkCover === n + 1) coverIdx = images.length;
-    images.push({ ...r, caption: String(bulkCaps[n] || "").trim() });
+    images.push({ ...r, caption: String(bulkCaps[n] || "").trim(), ownCharas: [], ownTags: String(bulkTags[n] || "").split(/[,、，]/) });
   }
   const media = [];
   for (const m of list(raw.media)) { const r = await parseMedia(m); if (r) media.push(r); }
@@ -178,18 +179,27 @@ for (const f of files) {
   const workSel = String(raw.work || "").trim(), workName = String(raw.work_name || "").trim();
   const w = isOrig ? null : findWork(charapu, [workSel, workName].filter(Boolean), tags);
   const work = w ? w.title : workSel || workName || (isOrig ? "オリジナル" : "");
-  let charas = uniqTags(list(raw.charas));
+  let charas = uniqTags([...list(raw.charas), ...list(raw.charas_free)]);
   if (!charas.length && w && w.charas.length === 1) charas = [w.charas[0]]; // 1人だけの作品はキャラ名を自動で
   // 旧データ：作品名・キャラ名がタグに入っている場合は、属性タグから外す
   const attr = tags.filter((t) => normName(t) !== normName(work) && !charas.some((c) => normName(c) === normName(t)) && !(w && w.names.includes(normName(t))));
+  // 画像ごと：キャラ（空なら投稿のキャラ名）と、属性タグ（投稿全体のタグ＋その画像のタグ）
+  for (const im of images) {
+    const own = uniqTags(im.ownCharas);
+    im.charas = own.length ? own : charas;
+    im.tags = uniqTags([...attr, ...im.ownTags]).filter((t) => !im.charas.some((c) => normName(c) === normName(t)) && normName(t) !== normName(work));
+    delete im.ownCharas; delete im.ownTags;
+  }
+  const allCharas = uniqTags([...charas, ...images.flatMap((im) => im.charas)]);
+  const allAttrs = uniqTags([...attr, ...images.flatMap((im) => im.tags)]);
   const [, mm, dd] = day(raw.date).split("-");
   posts.push({
     slug, title, date: day(raw.date),
     label: (isOrig ? charas[0] || "オリジナル" : work || charas[0] || attr[0]) || `${+mm}/${+dd}の作品`, // 表示名は作品名・キャラ名（タイトルは管理用でサイトには出さない）
     category, images, media, coverIdx: coverIdx < 0 ? 0 : coverIdx,
     comment: String(raw.comment || ""),
-    work, workId: w ? w.id : "", charas,
-    tags: uniqTags([work, ...charas, ...attr]), // 表示するタグ：作品名 → キャラ名 → 属性の順
+    work, workId: w ? w.id : "", charas: allCharas,
+    tags: uniqTags([work, ...allCharas, ...allAttrs]), // 表示するタグ：作品名 → キャラ名 → 属性の順
     attrs: attr,
     unmatched: !w && !isOrig && (workSel || category === "キャラぷ") ? (workSel || workName || "（作品名なし）") : "",
     charapu, pickup: !!raw.pickup,
@@ -279,7 +289,7 @@ for (const w of works) {
     .map((u) => ({ date: day(u && u.date), text: String((u && u.text) || "").trim() }))
     .filter((u) => u.date && u.text).sort((a, b) => b.date.localeCompare(a.date));
   const illusts = [];
-  for (const p of posts) if (p.workId === w.id) for (const im of p.images) illusts.push({ src: im.src, thumb: im.thumb, title: im.caption || p.label, date: p.date });
+  for (const p of posts) if (p.workId === w.id) for (const im of p.images) illusts.push({ src: im.src, thumb: im.thumb, title: im.caption || p.label, date: p.date, charas: im.charas, tags: im.tags });
   // タグ：作品名 → 登場キャラ名 → 属性（旧データで作品名・キャラ名がタグにあっても二重にしない）
   const attr = uniqTags(list(raw.tags)).filter((t) => normName(t) !== normName(w.title) && !w.charas.some((c) => normName(c) === normName(t)));
   characters.push({

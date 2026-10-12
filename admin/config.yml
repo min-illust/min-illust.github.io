@@ -56,7 +56,18 @@ collections:
         required: false
         hint: "キャラ（リンク集）に登録した作品から選びます。オリジナルは選ばなくてOK（分類をオリジナルにすると自動で「オリジナル」になります）"
       - { name: work_name, label: 作品名（一覧にないとき・MVは曲名）, widget: string, required: false, hint: "まだキャラ（リンク集）に登録していない作品はここに手入力。あとで同じ名前で登録すると自動で結びつきます" }
-      - { name: charas, label: キャラ名（任意・複数OK）, label_singular: キャラ名, widget: list, required: false, hint: "1人だけの作品なら空でOK（キャラ（リンク集）の登場キャラ名が自動で入ります）。シミュや名前のあるオリジナルキャラのときだけ入れてください" }
+      - name: charas
+        label: キャラ名（選んだ作品の登場キャラから・複数OK・任意）
+        widget: relation
+        collection: characters
+        value_field: "charas.*"
+        search_fields: ["charas.*"]
+        display_fields: ["charas.*"]
+        multiple: true
+        required: false
+        filters: [{ field: title, values: ["{{fields.work}}"] }]
+        hint: "全部の画像に付きます。1人だけの作品なら空でOK（自動で入ります）。/admin2/ では上で選んだ作品のキャラだけが候補に出ます"
+      - { name: charas_free, label: キャラ名（一覧にないとき・オリジナル・手入力）, label_singular: キャラ名, widget: list, required: false, hint: "名前のあるオリジナルキャラや、まだ登録していないキャラ" }
       - name: images
         label: 画像（複数OK・任意）
         label_singular: 画像
@@ -67,8 +78,20 @@ collections:
           - { name: src, label: 画像, widget: image, choose_url: false }
           - { name: caption, label: 一言（任意・拡大したときに絵の下に出ます）, widget: string, required: false }
           - { name: cover, label: 表紙にする（新着の1枚目になります。なしなら1枚目の画像）, widget: boolean, default: false, required: false }
+          - name: charas
+            label: この画像のキャラ（任意・空なら投稿のキャラ名）
+            widget: relation
+            collection: characters
+            value_field: "charas.*"
+            search_fields: ["charas.*"]
+            display_fields: ["charas.*"]
+            multiple: true
+            required: false
+            filters: [{ field: title, values: ["{{fields.work}}"] }]
+          - { name: tags, label: この画像のタグ（任意・カンマ区切り）, widget: list, required: false, hint: "投稿全体のタグに追加で付きます（スーツ・眼鏡など）" }
       - { name: images_bulk, label: 画像（まとめて追加・任意）, widget: image, multiple: true, required: false, choose_url: false, hint: "複数の画像をまとめて選べます（/admin2/ の管理画面）。一言や表紙を付けたい画像は上の「画像」の欄へ。ここの画像は上の画像のあとに並びます" }
       - { name: bulk_captions, label: まとめて追加した画像の一言（任意・上から順に1行ずつ）, widget: text, required: false, hint: "1行目が1枚目、2行目が2枚目…。一言がいらない画像は空の行にしてください" }
+      - { name: bulk_tags, label: まとめて追加した画像のタグ（任意・上から順に1行ずつ・1行の中はカンマ区切り）, widget: text, required: false, hint: "例：1行目「ハロウィン, 仮装」2行目「仕事」。タグがいらない画像は空の行に" }
       - { name: bulk_cover, label: まとめて追加した画像で表紙にするもの（任意・何枚目か）, widget: number, value_type: int, min: 1, required: false, hint: "例：3 なら、まとめて追加した3枚目が表紙（新着の1枚目）。上の「画像」の欄で表紙にチェックがあればそちらが優先" }
       - name: media
         label: 曲・動画のURL（Suno / YouTube・任意）
@@ -78,7 +101,7 @@ collections:
         hint: "Sunoの曲ページ、YouTubeの動画ページ（限定公開もOK）のURLを貼ってください"
         field: { name: url, label: URL, widget: string }
       - { name: comment, label: コメント（任意）, widget: text, required: false }
-      - { name: tags, label: タグ（幼馴染・同居など・カンマ区切り・任意）, widget: list, required: false, hint: "作品名とキャラ名は自動でタグになるので、ここには入れなくてOK" }
+      - { name: tags, label: タグ（全部の画像に共通・ハロウィンなど・カンマ区切り・任意）, widget: list, required: false, hint: "作品名とキャラ名は自動でタグになるので、ここには入れなくてOK。画像ごとのタグは「画像」の枠の中へ" }
       - { name: charapu, label: キャラぷのURL（あるときだけ）, widget: string, required: false, hint: "入れると「このキャラと話す」ボタンが出ます" }
       - { name: pickup, label: ピックアップ（将来のポートフォリオ用・今はサイトに表示されません）, widget: boolean, default: false, required: false }
 
