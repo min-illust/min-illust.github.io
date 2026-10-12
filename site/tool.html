@@ -33,7 +33,9 @@ input[type=range]{width:100%;accent-color:var(--hot)}
 .seg button{font:700 12px var(--f-body);border:2px solid var(--ink);background:var(--card);color:var(--ink);padding:5px 10px;cursor:pointer}
 .seg button.on{background:var(--ink);color:var(--paper)}
 .stage{background:repeating-conic-gradient(var(--line) 0 25%,transparent 0 50%) 0 0/16px 16px;border:2px solid var(--ink);display:flex;align-items:center;justify-content:center;min-height:260px;padding:8px}
-.stage canvas{max-width:100%;max-height:70vh;display:block}
+.stage canvas{max-width:100%;max-height:70vh;display:block;touch-action:none;cursor:grab}
+.stage canvas:active{cursor:grabbing}
+.thumbs .moved{position:absolute;left:0;bottom:0;background:var(--hot);color:#fff;font:700 10px var(--f-body);padding:0 4px}
 .stage p{color:var(--soft);font-weight:700}
 .thumbs{display:grid;grid-template-columns:repeat(auto-fill,minmax(72px,1fr));gap:6px;margin-top:10px}
 .thumbs button{position:relative;padding:0;border:2px solid var(--line);background:var(--line);aspect-ratio:1;cursor:pointer;overflow:hidden}
@@ -79,6 +81,8 @@ input[type=range]{width:100%;accent-color:var(--hot)}
     <div>
       <div class="stage" id="stage"><p>画像を選ぶと、ここにプレビューが出ます</p></div>
       <div class="meta" id="meta"></div>
+      <p class="note" id="dragNote">プレビューのサインを指やマウスでドラッグすると、<b>その画像だけ</b>好きな場所に動かせます。</p>
+      <div class="acts" style="margin-top:6px"><button class="btn" id="resetPos" disabled>この画像の位置を戻す</button><button class="btn" id="applyAll" disabled>この位置をほかの画像にも使う</button></div>
       <div class="thumbs" id="thumbs"></div>
       <div class="acts">
         <button class="btn hot" id="save" disabled>まとめて保存</button>
@@ -147,9 +151,11 @@ input[type=range]{width:100%;accent-color:var(--hot)}
     for (let a = 0; a < 8; a++) ctx.drawImage(img, x + Math.cos(a * Math.PI / 4) * r, y + Math.sin(a * Math.PI / 4) * r, w, h);
     ctx.drawImage(img, x, y, w, h);
   }
-  function render(bmp) {
+  let lastBox = null; // プレビューでのサインの位置（ドラッグ判定用）
+  function render(bmp, it, previewMax) {
     const sw = bmp.width, sh = bmp.height;
-    const k = S.max && Math.max(sw, sh) > S.max ? S.max / Math.max(sw, sh) : 1;
+    const lim = previewMax ? Math.min(previewMax, S.max || Infinity) : S.max;
+    const k = lim && Math.max(sw, sh) > lim ? lim / Math.max(sw, sh) : 1;
     const W = Math.round(sw * k), H = Math.round(sh * k);
     const c = document.createElement("canvas"); c.width = W; c.height = H;
     const ctx = c.getContext("2d");
@@ -175,6 +181,9 @@ input[type=range]{width:100%;accent-color:var(--hot)}
       if (S.pos === "tl") { x = m; y = m; }
       if (S.pos === "tr") y = m;
       if (S.pos === "c") { x = (W - lw) / 2; y = (H - lh) / 2; }
+      if (it && it.at) { x = it.at.x * W - lw / 2; y = it.at.y * H - lh / 2; } // 自分で動かした位置
+      x = Math.min(Math.max(x, 0), W - lw); y = Math.min(Math.max(y, 0), H - lh);
+      lastBox = { x: x / W, y: y / H, w: lw / W, h: lh / H };
       const col = S.color === "auto" ? (luminance(ctx, x, y, lw, lh) < 140 ? "#fff" : "#000") : S.color === "white" ? "#fff" : "#000";
       stamp(ctx, tint(col), x, y, lw, lh, S.bd);
     }
@@ -191,7 +200,7 @@ input[type=range]{width:100%;accent-color:var(--hot)}
 
   // ---- 画面 ----
   function renderThumbs() {
-    $("thumbs").innerHTML = items.map((it, i) => `<button class="${i === cur ? "on" : ""}" data-i="${i}" aria-label="${i + 1}枚目"><img src="${URL.createObjectURL(it.file)}" alt=""><span class="x" data-del="${i}">✕</span></button>`).join("");
+    $("thumbs").innerHTML = items.map((it, i) => `<button class="${i === cur ? "on" : ""}" data-i="${i}" aria-label="${i + 1}枚目"><img src="${it.url ||= URL.createObjectURL(it.file)}" alt=""><span class="x" data-del="${i}">✕</span>${it.at ? `<span class="moved">位置</span>` : ""}</button>`).join("");
     const has = items.length > 0;
     $("save").disabled = $("clear").disabled = !has;
     $("share").disabled = !has;
@@ -200,10 +209,37 @@ input[type=range]{width:100%;accent-color:var(--hot)}
   function preview() {
     const it = items[cur];
     if (!it) { $("stage").innerHTML = "<p>画像を選ぶと、ここにプレビューが出ます</p>"; $("meta").textContent = ""; return; }
-    const c = render(it.bmp);
+    const c = render(it.bmp, it, 1000);
     $("stage").innerHTML = ""; $("stage").appendChild(c);
+    bindDrag(c, it);
+    $("resetPos").disabled = !it.at; $("applyAll").disabled = !it.at || items.length < 2 || S.pos === "tile";
+    $("dragNote").style.display = S.pos === "tile" ? "none" : "";
     $("meta").textContent = `${it.file.name} → ${c.width}×${c.height}px（${extOf(S.fmt).toUpperCase()}）`;
   }
+  // プレビュー上でサインをドラッグして動かす（くり返しのときは使わない）
+  function bindDrag(c, it) {
+    let drag = null;
+    const pt = (e) => { const r = c.getBoundingClientRect(); return { x: (e.clientX - r.left) / r.width, y: (e.clientY - r.top) / r.height }; };
+    c.addEventListener("pointerdown", (e) => {
+      if (S.pos === "tile" || !lastBox) return;
+      const p = pt(e), b = lastBox;
+      const inside = p.x >= b.x && p.x <= b.x + b.w && p.y >= b.y && p.y <= b.y + b.h;
+      // サインの上をつかんだらその場所から、外をタップしたらそこへ移動
+      drag = inside ? { dx: p.x - (b.x + b.w / 2), dy: p.y - (b.y + b.h / 2) } : { dx: 0, dy: 0 };
+      it.at = { x: p.x - drag.dx, y: p.y - drag.dy };
+      c.setPointerCapture(e.pointerId); redraw(c, it);
+    });
+    c.addEventListener("pointermove", (e) => { if (!drag) return; const p = pt(e); it.at = { x: p.x - drag.dx, y: p.y - drag.dy }; redraw(c, it); });
+    const end = () => { if (!drag) return; drag = null; renderThumbs(); preview(); };
+    c.addEventListener("pointerup", end); c.addEventListener("pointercancel", end);
+  }
+  let raf = 0;
+  function redraw(c, it) {
+    cancelAnimationFrame(raf);
+    raf = requestAnimationFrame(() => { const n = render(it.bmp, it, 1000), x = c.getContext("2d"); x.clearRect(0, 0, c.width, c.height); x.drawImage(n, 0, 0); });
+  }
+  $("resetPos").addEventListener("click", () => { const it = items[cur]; if (it) { delete it.at; renderThumbs(); preview(); } });
+  $("applyAll").addEventListener("click", () => { const it = items[cur]; if (!it || !it.at) return; items.forEach((x) => { x.at = { ...it.at }; }); renderThumbs(); preview(); $("status").textContent = "全部の画像に同じ位置を使います"; });
   function syncUI() {
     for (const id of ["pos", "color", "max", "fmt"]) document.querySelectorAll(`#${id} [data-v]`).forEach((b) => b.classList.toggle("on", String(S[id]) === b.dataset.v));
     for (const [id, unit] of [["op", "%"], ["sz", "%"], ["bd", ""], ["mg", "%"], ["q", ""]]) { $(id).value = S[id]; $(id + "V").textContent = S[id] + unit; }
@@ -230,7 +266,7 @@ input[type=range]{width:100%;accent-color:var(--hot)}
     const out = [];
     for (let i = 0; i < items.length; i++) {
       $("status").textContent = `透かしを入れています… ${i + 1} / ${items.length}`;
-      const b = await toBlob(render(items[i].bmp));
+      const b = await toBlob(render(items[i].bmp, items[i]));
       out.push(new File([b], `${items[i].name}.${extOf(b.type)}`, { type: b.type }));
     }
     return out;
