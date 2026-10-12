@@ -327,6 +327,10 @@ characters.sort((a, b) => b.published.localeCompare(a.published) || b.id.localeC
   const analytics = gc ? `<script data-goatcounter="https://${gc}.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>` : "";
   const bootOf = (data) => `<script>window.__CHARA=${JSON.stringify({ updated: new Date().toISOString(), base: BASE, categories: CHARA_CATS, genres: CHARA_GENRES, ...data }).replace(/</g, "\\u003c")};</script>` + analytics;
 
+  // 最新データ（ページが古く覚えられていても、開くたびにこちらを読む）
+  await fs.mkdir(path.join(OUT, "data"), { recursive: true });
+  await fs.writeFile(path.join(OUT, "data/chara.json"), JSON.stringify({ updated: new Date().toISOString(), characters }));
+
   // 一覧ページ（/chara/）
   await fs.mkdir(path.join(OUT, "chara"), { recursive: true });
   await fs.writeFile(path.join(OUT, "chara/index.html"),

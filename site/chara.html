@@ -364,6 +364,13 @@
 
 <!--BOOT-->
 <script>
+// 開くたびに最新のデータを読み込む（ブラウザが古いページを覚えていても、新しいイラストやタグが出るように）
+(async () => {
+try {
+  const B0 = window.__CHARA || {};
+  const r = await fetch(`${B0.base || ""}/data/chara.json`, { cache: "no-cache" });
+  if (r.ok) { const j = await r.json(); if (j && Array.isArray(j.characters)) window.__CHARA = { ...B0, ...j, single: B0.single }; }
+} catch (e) {}
 /* ================= 設定 ================= */
 const BOOT = window.__CHARA || {characters:[]};
 const TODAY = new Date();
@@ -719,6 +726,7 @@ if(SOLO){
   // タグ付きで来たときは、絞り込んだ一覧まで下げて見せる
   if(state.tag) requestAnimationFrame(()=>document.getElementById("allTop").scrollIntoView());
 }
+})();
 </script>
 </body>
 </html>
