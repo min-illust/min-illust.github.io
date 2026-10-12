@@ -511,7 +511,9 @@ function filtered(){
     if(state.has.has("talk")&&!c.talk) return false;
     for(const g of state.genres){ if(!(c.genres||[]).includes(g)) return false; }
     if(q.length){
-      const hay=norm([c.title,c.tagline,...(c.genres||[]),c.category,...(c.tags||[]),...(c.charas||[])].join(" "));
+      // イラストに付けたタグ・キャラ名・一言も検索の対象に
+      const ill=(c.illusts||[]).flatMap(i=>[i.title,...(i.tags||[]),...(i.charas||[])]);
+      const hay=norm([c.title,c.tagline,...(c.genres||[]),c.category,...(c.tags||[]),...(c.charas||[]),...ill].join(" "));
       if(!q.every(w=>hay.includes(w))) return false;
     }
     return true;
