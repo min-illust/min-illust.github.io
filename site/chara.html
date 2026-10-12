@@ -267,6 +267,9 @@
   .copy{display:block;width:100%;margin-top:16px;padding:8px 0;border:2px dashed var(--ink);font-weight:900;font-size:12px}
   .copy.done{background:var(--ink);color:var(--paper);border-style:solid}
 
+  /* 画像を保存しにくくする（長押し・ドラッグ・選択） */
+  img{-webkit-user-drag:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
+  .lb-stage img,.gal-grid img,.recs-grid img{pointer-events:none}
   footer{margin-top:44px;text-align:center;font-family:"Space Mono",monospace;font-size:11px;color:var(--muted);letter-spacing:.15em}
 
   @media(max-width:360px){
@@ -650,6 +653,11 @@ document.addEventListener("keydown",e=>{
 document.addEventListener("click",e=>{
   const t=e.target.closest(".pk,.cell,.row"); if(t&&!sheet.contains(t)) openSheet(t.dataset.id);
 });
+
+/* ================= 画像の保存よけ（右クリック・長押しメニュー・ドラッグ） ================= */
+["contextmenu","dragstart"].forEach(ev=>document.addEventListener(ev,e=>{
+  if(e.target.closest&&e.target.closest("img,.lb,.gal-grid,.recs-grid,.sh-top,.pk,.cell,.row")) e.preventDefault();
+}));
 
 /* ================= 作品ページ（その作品だけを表示） ================= */
 const SOLO=BOOT.single&&characters.find(c=>c.id===BOOT.single);

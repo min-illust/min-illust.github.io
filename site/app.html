@@ -32,7 +32,8 @@ a{color:inherit}
 .wrap{max-width:880px;margin:0 auto;padding-inline:16px;padding-block:calc(24px + env(safe-area-inset-top,0px)) calc(64px + env(safe-area-inset-bottom,0px))}
 
 /* 保存しにくくする */
-.shot img,.tile img,.lb img,.cover img,.nw img,.rc img{-webkit-user-drag:none;user-select:none;-webkit-touch-callout:none;pointer-events:none}
+img{-webkit-user-drag:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
+.shot img,.tile img,.lb img,.cover img,.nw img,.rc img{pointer-events:none}
 
 /* masthead */
 .mast{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:16px;border-bottom:4px solid var(--ink);padding-bottom:14px}
@@ -461,7 +462,7 @@ a{color:inherit}
     if (e.key === "ArrowLeft") step(-1);
   });
   // 右クリック・長押し・ドラッグでの保存を防ぐ
-  const guard = (e) => { if (e.target.closest && e.target.closest(".shot, .tile, .lb, .cover, .play, .nw, .rc, .gcard")) e.preventDefault(); };
+  const guard = (e) => { if (e.target.closest && e.target.closest("img, .shot, .tile, .lb, .cover, .play, .nw, .rc, .gcard")) e.preventDefault(); };
   document.addEventListener("contextmenu", guard);
   document.addEventListener("dragstart", guard);
 })();
