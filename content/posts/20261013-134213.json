@@ -23,6 +23,15 @@
       "cover": true,
       "charas": [],
       "tags": []
+    },
+    {
+      "src": "/images/スチル_08.jpg",
+      "caption": "休憩中",
+      "cover": false,
+      "charas": [
+        "九条陽太"
+      ],
+      "tags": []
     }
   ],
   "images_bulk": [],
