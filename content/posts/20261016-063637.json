@@ -9,7 +9,17 @@
     "九条陽太"
   ],
   "charas_free": [],
-  "images": [],
+  "images": [
+    {
+      "src": "/images/100チャットありがとう！瞳する仲良しピッグバック.png",
+      "caption": "100チャットありがとう",
+      "cover": false,
+      "charas": [],
+      "tags": [
+        "記念イラスト"
+      ]
+    }
+  ],
   "images_bulk": [
     "/images/IMG_2629.jpg"
   ],
