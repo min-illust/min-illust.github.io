@@ -53,6 +53,15 @@
       "tags": [
         "日常"
       ]
+    },
+    {
+      "src": "/images/スチル_22.jpg",
+      "caption": "仮面",
+      "cover": false,
+      "charas": [
+        "セドリック・ヴァルグレン"
+      ],
+      "tags": []
     }
   ],
   "images_bulk": [
