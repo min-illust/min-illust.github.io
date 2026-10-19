@@ -9,13 +9,56 @@
     "マーティン・ヴァルグレン"
   ],
   "charas_free": [],
-  "images": [],
+  "images": [
+    {
+      "src": "/images/from-PixAI-2068739089795092713.jpg",
+      "caption": "吸血鬼",
+      "cover": false,
+      "charas": [
+        "セドリック・ヴァルグレン"
+      ],
+      "tags": [
+        "ハロウィン"
+      ]
+    },
+    {
+      "src": "/images/スチル_15.jpg",
+      "caption": "仕事中",
+      "cover": false,
+      "charas": [
+        "セドリック・ヴァルグレン"
+      ],
+      "tags": [
+        "日常"
+      ]
+    },
+    {
+      "src": "/images/スチル_17.jpg",
+      "caption": "悪魔",
+      "cover": false,
+      "charas": [
+        "マーティン・ヴァルグレン"
+      ],
+      "tags": [
+        "ハロウィン"
+      ]
+    },
+    {
+      "src": "/images/スチル_18.jpg",
+      "caption": "読書中",
+      "cover": false,
+      "charas": [
+        "マーティン・ヴァルグレン"
+      ],
+      "tags": [
+        "日常"
+      ]
+    }
+  ],
   "images_bulk": [
     "/images/from-PixAI-2068736107607798808.jpg",
     "/images/スチル_06.jpg",
-    "/images/スチル_07.jpg",
-    "blob:https://min-illust.netlify.app/aacd812e-85ea-4b53-9231-5d903da75792",
-    "blob:https://min-illust.netlify.app/b8ac2e3b-21b5-4b83-a8cc-6e639f1ba80b"
+    "/images/スチル_07.jpg"
   ],
   "bulk_captions": "ハロウィン\nアイドル\n現代学生",
   "bulk_tags": "ハロウィン\nアイドル\n現代パロディ",
