@@ -1,0 +1,30 @@
+{
+  "title": "",
+  "date": "2026-10-24",
+  "category": "AI CHARACTERS",
+  "work": "伯爵家の双子は私を手放さない",
+  "work_name": "",
+  "charas": [
+    "セドリック・ヴァルグレン",
+    "マーティン・ヴァルグレン"
+  ],
+  "charas_free": [],
+  "images": [
+    {
+      "src": "/images/スチル_28.png",
+      "caption": "デフォルメ",
+      "cover": false,
+      "charas": [],
+      "tags": []
+    }
+  ],
+  "images_bulk": [],
+  "bulk_captions": "",
+  "bulk_tags": "",
+  "bulk_cover": null,
+  "media": [],
+  "comment": "",
+  "tags": [],
+  "charapu": "https://s.kyarapu.com/s/6ad4e2ad7962f21eb639d0bc",
+  "pickup": false
+}
