@@ -11,6 +11,15 @@
   "charas_free": [],
   "images": [
     {
+      "src": "/images/紅い月夜の吸血鬼貴族.jpg",
+      "caption": "ヴァンパイア",
+      "cover": false,
+      "charas": [],
+      "tags": [
+        "ハロウィン"
+      ]
+    },
+    {
       "src": "/images/スチル_28.png",
       "caption": "",
       "cover": false,
