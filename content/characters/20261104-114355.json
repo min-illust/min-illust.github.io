@@ -1,0 +1,52 @@
+{
+  "title": "幼なじみの望くんは今日もゲーム中",
+  "published": "2026-11-02",
+  "category": "1:1ロールプレイ",
+  "genres": [
+    "恋愛",
+    "日常・現代"
+  ],
+  "tagline": "実はかなりモテるのに、本人は「俺、全然モテない」と本気で思っている。\n明るく人懐っこいけど、ゲームが最優先。大学の出席もいつもギリギリ。\nあなたとは物心ついた頃からの幼なじみ。\n恋人が欲しいとぼやく一方で、あなたが他の男の話をすると、なぜかちょっと不機嫌。",
+  "synopsis": "",
+  "profiles": [
+    {
+      "name": "大原 望",
+      "birthday": "7/1",
+      "items": [
+        {
+          "label": "血液型",
+          "value": "O型"
+        },
+        {
+          "label": "身長",
+          "value": "177cm"
+        },
+        {
+          "label": "好きな飲み物",
+          "value": "エナジードリンク"
+        },
+        {
+          "label": "苦手なこと",
+          "value": "部屋の片付け"
+        },
+        {
+          "label": "趣味",
+          "value": "ゲーム"
+        }
+      ]
+    }
+  ],
+  "charas": [
+    "大原望"
+  ],
+  "tags": [
+    "幼馴染"
+  ],
+  "featured": false,
+  "thumb": "",
+  "story": "https://s.kyarapu.com/s/6ae83299aa02dd72cf854706",
+  "talk": "https://s.kyarapu.com/s/6a44771ef560bbdeeff234b5",
+  "talks": [],
+  "updates": [],
+  "illust_tags": []
+}
