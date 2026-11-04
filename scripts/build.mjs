@@ -121,7 +121,7 @@ for (const f of charaFiles) {
   works.push({
     id: f.replace(/\.json$/, "").replace(/[^\w-]/g, "-"), f, raw, title,
     charas: uniqTags(list(raw.charas)),
-    keys: [raw.story, raw.talk].filter((u) => u && isKyarapu(u)).map(urlKey),
+    keys: [raw.story, raw.talk, ...(Array.isArray(raw.talks) ? raw.talks.map((t) => t && t.url) : [])].filter((u) => u && isKyarapu(u)).map(urlKey),
     names: [title, ...list(raw.illust_tags)].map(normName).filter(Boolean),
   });
 }
@@ -288,9 +288,18 @@ const characters = [];
 for (const w of works) {
   const { raw, f } = w;
   const story = isKyarapu(raw.story || "") ? String(raw.story).trim() : "";
-  const talk = isKyarapu(raw.talk || "") ? String(raw.talk).trim() : "";
+  const talk1 = isKyarapu(raw.talk || "") ? String(raw.talk).trim() : "";
   if (raw.story && !story) console.warn("キャラぷ以外のURLなので外しました:", f, raw.story);
-  if (raw.talk && !talk) console.warn("キャラぷ以外のURLなので外しました:", f, raw.talk);
+  if (raw.talk && !talk1) console.warn("キャラぷ以外のURLなので外しました:", f, raw.talk);
+  // トーク：キャラごと（talks）＋1つだけのトーク（talk）。1人だけの作品はキャラ名を自動で付ける
+  const talks = [];
+  for (const t of Array.isArray(raw.talks) ? raw.talks : []) {
+    const url = String((t && t.url) || "").trim();
+    if (!isKyarapu(url)) { if (url) console.warn("キャラぷ以外のURLなので外しました:", f, url); continue; }
+    if (!talks.some((x) => x.url === url)) talks.push({ name: String((t && t.name) || "").trim(), url });
+  }
+  if (talk1 && !talks.some((x) => x.url === talk1)) talks.unshift({ name: w.charas.length === 1 ? w.charas[0] : "", url: talk1 });
+  const talk = talks[0] ? talks[0].url : "";
   const genres = list(raw.genres).filter((g) => CHARA_GENRES.includes(g));
   const updates = (Array.isArray(raw.updates) ? raw.updates : [])
     .map((u) => ({ date: day(u && u.date), text: String((u && u.text) || "").trim() }))
@@ -318,7 +327,7 @@ for (const w of works) {
     featured: !!raw.featured,
     published: day(raw.published),
     thumb: await charaThumb(raw.thumb),
-    story, talk, updates, illusts,
+    story, talk, talks, updates, illusts,
   });
 }
 characters.sort((a, b) => b.published.localeCompare(a.published) || b.id.localeCompare(a.id));
@@ -388,7 +397,7 @@ for (const p of posts) { // posts は新しい順
   if (!g.cats.includes(p.category)) g.cats.push(p.category);
 }
 for (const g of groupMap.values()) {
-  if (g.key.startsWith("w:")) { const c = characters.find((x) => `w:${x.id}` === g.key); if (c && c.thumb) g.cover = c.thumb; }      // キャラぷ：キャラリンク集の顔
+  if (g.key.startsWith("w:")) { const c = characters.find((x) => `w:${x.id}` === g.key); if (c && c.thumb) g.cover = c.thumb; if (c) { g.story = c.story; g.talks = c.talks; } }      // キャラぷ：キャラリンク集の顔・ストーリー・トーク
   if (g.key.startsWith("o:")) { const cv = origCovers.get(normName(g.name)); if (cv) g.cover = cv; }                                  // オリジナル：専用の表紙
 }
 const groups = [...groupMap.values()].sort((a, b) => b.updated.localeCompare(a.updated));

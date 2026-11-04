@@ -168,10 +168,23 @@ collections:
         required: false
         pattern: ['^$|^https://([a-z0-9-]+\.)*kyarapu\.com/', "キャラぷのURL（https://〜kyarapu.com/〜）だけ入れられます"]
       - name: talk
-        label: トークのURL（キャラぷ・あるときだけ）
+        label: トークのURL（キャラぷ・トークが1つだけのとき）
         widget: string
         required: false
         pattern: ['^$|^https://([a-z0-9-]+\.)*kyarapu\.com/', "キャラぷのURL（https://〜kyarapu.com/〜）だけ入れられます"]
+      - name: talks
+        label: キャラごとのトーク（シミュなど、トークが複数あるとき）
+        label_singular: トーク
+        widget: list
+        required: false
+        summary: "{{fields.name}}"
+        hint: "キャラ名は「登場キャラ名」と同じ名前にすると、プロフィールにもトークのボタンが付きます"
+        fields:
+          - { name: name, label: キャラ名, widget: string }
+          - name: url
+            label: トークのURL
+            widget: string
+            pattern: ['^https://([a-z0-9-]+\.)*kyarapu\.com/', "キャラぷのURL（https://〜kyarapu.com/〜）だけ入れられます"]
       - name: updates
         label: 更新履歴（スチル追加など。新しいものを上に）
         label_singular: 更新

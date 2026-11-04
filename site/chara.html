@@ -217,6 +217,12 @@
   .pf button{margin-top:4px;font-size:11px;font-weight:900;color:var(--red);padding:0}
   .bday{display:inline-block;margin-left:6px;background:var(--yellow);color:var(--ink);font-size:11px;font-weight:900;padding:0 6px;border:1.5px solid var(--ink);vertical-align:middle}
   .cake{position:absolute;left:-4px;top:-8px;font-size:18px;line-height:1;filter:drop-shadow(0 1px 1px rgba(0,0,0,.5))}
+  /* キャラごとのトーク */
+  .btns.talks{flex-wrap:wrap;margin-top:8px}
+  .btns.talks .btn{flex:1 1 calc(50% - 4px);font-size:16px;padding:8px 4px 7px}
+  .btns.talks .btn small{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .pf-talk{display:inline-block;margin-top:6px;background:var(--red);color:var(--paper);text-decoration:none;font-family:"Anton",sans-serif;font-size:13px;letter-spacing:.06em;padding:3px 10px}
+  .pf-talk small{font-family:"Zen Kaku Gothic New",sans-serif;font-size:10px;font-weight:700;letter-spacing:0;margin-left:4px}
   .tl-more{display:block;margin-top:4px;font-size:12px;font-weight:900;color:var(--red);padding:2px 0}
   .tags{display:flex;flex-wrap:wrap;gap:4px;margin-top:10px}
   .tag{font-size:11px;font-weight:700;border:1.5px solid var(--ink);padding:1px 6px;font-family:inherit;color:var(--ink);background:none;cursor:pointer}
@@ -624,7 +630,8 @@ function profilesHTML(c){
   return `<div class="prof"><h4>PROFILE</h4><div class="prof-grid${ps.length>1?" many":""}">${ps.map(pf=>{
     const rows=[...(pf.birthday?[["誕生日",pf.birthday]]:[]),...pf.items.map(i=>[i.label,i.value])];
     const html=rows.map(([k,v],i)=>`${i===PF_SHOW?'<div class="rest">':""}<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`).join("")+(rows.length>PF_SHOW?"</div>":"");
-    return `<div class="pf"><b>${esc(pf.name)}${isBday(pf)?`<span class="bday">🎂 HAPPY BIRTHDAY</span>`:""}</b><dl>${html}</dl>${rows.length>PF_SHOW?`<button data-pf="1">もっと見る ▼</button>`:""}</div>`;
+    const tk=(c.talks||[]).find(t=>t.name&&norm(t.name)===norm(pf.name)&&isKyarapu(t.url));
+    return `<div class="pf"><b>${esc(pf.name)}${isBday(pf)?`<span class="bday">🎂 HAPPY BIRTHDAY</span>`:""}</b><dl>${html}</dl>${rows.length>PF_SHOW?`<button data-pf="1">もっと見る ▼</button>`:""}${tk?`<a class="pf-talk" href="${esc(tk.url)}" target="_blank" rel="noopener">TALK<small>${esc(pf.name)}と話す ↗</small></a>`:""}</div>`;
   }).join("")}</div></div>`;
 }
 document.addEventListener("click",e=>{
@@ -649,7 +656,9 @@ function detailHTML(c,all,solo){
       (k===shown.length-1&&rest>0)?`<span class="more" data-more="1">+${rest}</span>`:""}</button>`).join("")}</div>`
     :`<p class="gal-note">まだイラストはありません</p>`}</div>`;
   const s=status(c), lu=lastUpdate(c);
-  const story=c.story&&isKyarapu(c.story), talk=c.talk&&isKyarapu(c.talk);
+  const story=c.story&&isKyarapu(c.story);
+  const talks=(c.talks&&c.talks.length?c.talks:(c.talk?[{name:"",url:c.talk}]:[])).filter(t=>isKyarapu(t.url));
+  const named=talks.length>1||talks.some(t=>t.name&&(c.charas||[]).length>1);
   const hist=[...(c.updates||[])].sort((a,b)=>b.date.localeCompare(a.date));
   return `
     ${solo?"":`<button class="close" id="closeSheet" aria-label="閉じる">✕</button>`}
@@ -668,8 +677,9 @@ function detailHTML(c,all,solo){
     <p class="sh-date">RELEASE ${dot(c.published)}${lu?` / UPDATE ${dot(lu)}`:""}</p>
     <div class="btns">
       ${story?`<a class="btn story" href="${esc(c.story)}" target="_blank" rel="noopener">STORY<small>ストーリー</small></a>`:""}
-      ${talk?`<a class="btn talk" href="${esc(c.talk)}" target="_blank" rel="noopener">TALK<small>トーク</small></a>`:""}
+      ${!named&&talks[0]?`<a class="btn talk" href="${esc(talks[0].url)}" target="_blank" rel="noopener">TALK<small>トーク</small></a>`:""}
     </div>
+    ${named?`<div class="btns talks">${talks.map(t=>`<a class="btn talk" href="${esc(t.url)}" target="_blank" rel="noopener">TALK<small>${esc(t.name||"トーク")}</small></a>`).join("")}</div>`:""}
     ${galHTML}
     ${hist.length?`<div class="hist"><h4>UPDATE LOG</h4><ul>${hist.map(u=>`<li><span>${dot(u.date)}</span>${esc(u.text)}</li>`).join("")}</ul></div>`:""}
     <button class="copy" data-share="1">この作品をシェア</button>

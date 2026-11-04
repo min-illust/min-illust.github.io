@@ -326,6 +326,18 @@ img{-webkit-user-drag:none;user-select:none;-webkit-user-select:none;-webkit-tou
     let off = 0;
     return list.map(p => { const h = entry(p, key, off, opts); off += p.images.length; return h; }).join("");
   }
+  // キャラぷへのボタン：ストーリー＋キャラごとのトーク（投稿ではその絵のキャラのトークを優先）
+  function playButtons(g, p, inline){
+    const talks = (g && g.talks) || [];
+    let list = talks;
+    if (p && p.charas && p.charas.length) { const m = talks.filter(t => t.name && p.charas.some(c => norm(c) === norm(t.name))); if (m.length) list = m; }
+    const btns = [];
+    if (g && g.story && !p) btns.push(`<a class="btn" href="${esc(g.story)}" target="_blank" rel="noopener">ストーリーで遊ぶ ↗</a>`);
+    for (const t of list) btns.push(`<a class="btn hot" href="${esc(t.url)}" target="_blank" rel="noopener">${t.name && (talks.length > 1 || !p) ? esc(t.name) + "と話す" : "このキャラと話す"} ↗</a>`);
+    if (!btns.length) { const u = (p && p.charapu) || (g && g.charapu); if (u) btns.push(`<a class="btn hot" href="${esc(u)}" target="_blank" rel="noopener">このキャラと話す ↗</a>`); }
+    if (!btns.length) return "";
+    return inline ? btns.join("") : `<div class="acts">${btns.join("")}</div>`;
+  }
   const isMusicGroup = (g) => g.cats.some(c => (D.categories.find(x => x.name === c) || {}).music) || g.posts.every(s => (D.posts.find(p => p.slug === s) || {}).music);
   function groupCard(g){
     const badge = recent(g.first) ? `<span class="new">NEW</span>` : recent(g.updated) ? `<span class="new up">UP</span>` : "";
@@ -433,7 +445,7 @@ img{-webkit-user-drag:none;user-select:none;-webkit-user-select:none;-webkit-tou
     document.title = `${g.name}｜Min. CREATIVE LOG`;
     return crumbs([[g.name]]) + `<section class="gh"><span class="cover">${g.cover ? `<img src="${esc(g.cover)}" alt="">` : `<span class="ph">♪</span>`}</span>
       <div><h2>${esc(g.name)}</h2><p>${g.pics} PICS · ${ps.length} POSTS · ${g.updated.replaceAll("-", ".")} UPDATE</p></div></section>
-      ${g.charapu ? `<div class="acts"><a class="btn hot" href="${esc(g.charapu)}" target="_blank" rel="noopener">このキャラと話す ↗</a></div>` : ""}
+      ${playButtons(g, null)}
       <section class="sec" style="margin-top:20px">${entries(ps, "g", { tags: false })}</section>`;
   }
   function viewAll(){
@@ -465,7 +477,7 @@ img{-webkit-user-drag:none;user-select:none;-webkit-user-select:none;-webkit-tou
       ${p.comment ? `<p style="white-space:pre-wrap;margin:0 0 10px">${esc(p.comment)}</p>` : ""}
       ${pics}${mediaHTML(p)}${tagsHTML(p)}
       <div class="acts">
-        ${p.charapu ? `<a class="btn hot" href="${esc(p.charapu)}" target="_blank" rel="noopener">このキャラと話す ↗</a>` : ""}
+        ${playButtons(g, p, true)}
         <a class="btn" href="https://x.com/intent/post?text=${enc(xText)}&url=${enc(share)}" target="_blank" rel="noopener">Xで共有</a>
         <button class="btn" data-copy="${esc(share)}">リンクをコピー</button>
       </div>
