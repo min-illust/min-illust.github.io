@@ -19,29 +19,6 @@
       ]
     },
     {
-      "src": "/images/54B72DEA-0EF3-4CA3-A873-40070F20B54B.jpeg",
-      "caption": "トークコンテスト10位お祝いイラスト",
-      "cover": false,
-      "charas": [],
-      "tags": [
-        "記念イラスト"
-      ]
-    },
-    {
-      "src": "/images/536B4FDB-6491-46D5-98B1-63B945AB09EE.png",
-      "caption": "",
-      "cover": false,
-      "charas": [],
-      "tags": []
-    },
-    {
-      "src": "/images/スチル_58.jpg",
-      "caption": "勇者",
-      "cover": false,
-      "charas": [],
-      "tags": []
-    },
-    {
       "src": "/images/from-PixAI-2074690611131590208.jpg",
       "caption": "",
       "cover": false,
@@ -62,6 +39,29 @@
       "charas": [],
       "tags": [
         "着ぐるみ"
+      ]
+    },
+    {
+      "src": "/images/スチル_58.jpg",
+      "caption": "勇者",
+      "cover": false,
+      "charas": [],
+      "tags": []
+    },
+    {
+      "src": "/images/536B4FDB-6491-46D5-98B1-63B945AB09EE.png",
+      "caption": "",
+      "cover": false,
+      "charas": [],
+      "tags": []
+    },
+    {
+      "src": "/images/54B72DEA-0EF3-4CA3-A873-40070F20B54B.jpeg",
+      "caption": "トークコンテスト10位お祝いイラスト",
+      "cover": false,
+      "charas": [],
+      "tags": [
+        "記念イラスト"
       ]
     }
   ],
