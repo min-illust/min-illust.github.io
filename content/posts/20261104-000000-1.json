@@ -4,7 +4,9 @@
   "category": "AI CHARACTERS",
   "work": "幼なじみの望くんは片思い中",
   "work_name": "",
-  "charas": [],
+  "charas": [
+    "大原望"
+  ],
   "charas_free": [],
   "images": [
     {
@@ -14,6 +16,52 @@
       "charas": [],
       "tags": [
         "スーツ"
+      ]
+    },
+    {
+      "src": "/images/54B72DEA-0EF3-4CA3-A873-40070F20B54B.jpeg",
+      "caption": "トークコンテスト10位お祝いイラスト",
+      "cover": false,
+      "charas": [],
+      "tags": [
+        "記念イラスト"
+      ]
+    },
+    {
+      "src": "/images/536B4FDB-6491-46D5-98B1-63B945AB09EE.png",
+      "caption": "",
+      "cover": false,
+      "charas": [],
+      "tags": []
+    },
+    {
+      "src": "/images/スチル_58.jpg",
+      "caption": "勇者",
+      "cover": false,
+      "charas": [],
+      "tags": []
+    },
+    {
+      "src": "/images/from-PixAI-2074690611131590208.jpg",
+      "caption": "",
+      "cover": false,
+      "charas": [],
+      "tags": []
+    },
+    {
+      "src": "/images/スチル_62.jpg",
+      "caption": "",
+      "cover": false,
+      "charas": [],
+      "tags": []
+    },
+    {
+      "src": "/images/スチル_65.jpg",
+      "caption": "着ぐるみ",
+      "cover": false,
+      "charas": [],
+      "tags": [
+        "着ぐるみ"
       ]
     }
   ],
