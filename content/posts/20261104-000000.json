@@ -1,0 +1,33 @@
+{
+  "title": "",
+  "date": "2026-11-04",
+  "category": "AI CHARACTERS",
+  "work": "訳ありシェアハウス四季",
+  "work_name": "",
+  "charas": [
+    "春宮琉衣"
+  ],
+  "charas_free": [],
+  "images": [
+    {
+      "src": "/images/イラスト1.jpg",
+      "caption": "眼鏡",
+      "cover": false,
+      "charas": [
+        "春宮琉衣"
+      ],
+      "tags": [
+        "眼鏡"
+      ]
+    }
+  ],
+  "images_bulk": [],
+  "bulk_captions": "",
+  "bulk_tags": "",
+  "bulk_cover": null,
+  "media": [],
+  "comment": "",
+  "tags": [],
+  "charapu": "",
+  "pickup": false
+}
