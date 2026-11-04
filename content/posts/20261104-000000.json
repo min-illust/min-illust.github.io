@@ -19,6 +19,15 @@
       "tags": [
         "眼鏡"
       ]
+    },
+    {
+      "src": "/images/スチル_06-1.jpg",
+      "caption": "ライブ中",
+      "cover": false,
+      "charas": [
+        "夏坂律希"
+      ],
+      "tags": []
     }
   ],
   "images_bulk": [],
