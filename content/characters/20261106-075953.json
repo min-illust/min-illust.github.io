@@ -98,7 +98,16 @@
   "thumb": "/images/スチル_17.png",
   "story": "https://s.kyarapu.com/s/6aeda342c43e3162f8c108d7",
   "talk": "",
-  "talks": [],
+  "talks": [
+    {
+      "name": "鷹峰尊士",
+      "url": "https://s.kyarapu.com/s/6aef4510c2bd3b4f6cb6e50e"
+    },
+    {
+      "name": "鷹峰凪",
+      "url": "https://s.kyarapu.com/s/6af1a1610e6c04f5bdd25812"
+    }
+  ],
   "updates": [],
   "illust_tags": []
 }
