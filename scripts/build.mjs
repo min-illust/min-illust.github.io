@@ -125,6 +125,7 @@ for (const f of charaFiles) {
     names: [title, ...list(raw.illust_tags)].map(normName).filter(Boolean),
   });
 }
+const KNOWN_CHARAS = new Set(works.flatMap((w) => w.charas.map(normName)));
 // 投稿 → 作品：キャラぷのURLが同じ > 作品名（または別名）が同じ > 旧データのタグが作品名と同じ
 function findWork(charapu, names, oldTags) {
   const k = charapu ? urlKey(charapu) : "";
@@ -193,9 +194,14 @@ for (const f of files) {
   // 旧データ：作品名・キャラ名がタグに入っている場合は、属性タグから外す
   const attr = uniqTags([...(coWorks.length ? ["コラボ"] : []), ...tags]).filter((t) => normName(t) !== normName(work) && !coWorks.some((x) => normName(x.title) === normName(t)) && !charas.some((c) => normName(c) === normName(t)) && !(w && w.names.includes(normName(t))));
   // 画像ごと：キャラ（空なら投稿のキャラ名）と、属性タグ（投稿全体のタグ＋その画像のタグ）
+  // コラボ相手のキャラは、画像ごとにキャラを選んでいても全部の画像に付ける。
+  // 画像のタグにキャラ名（登録済みのキャラ）が入っていたら、タグではなくキャラとして扱う。
+  const partners = uniqTags(list(raw.charas_any));
   for (const im of images) {
     const own = uniqTags(im.ownCharas);
-    im.charas = own.length ? own : charas;
+    const tagCh = uniqTags(im.ownTags).filter((t) => KNOWN_CHARAS.has(normName(t)));
+    im.ownTags = uniqTags(im.ownTags).filter((t) => !KNOWN_CHARAS.has(normName(t)));
+    im.charas = uniqTags([...(own.length ? [...own, ...partners] : charas), ...tagCh]);
     im.tags = uniqTags([...attr, ...im.ownTags]).filter((t) => !im.charas.some((c) => normName(c) === normName(t)) && normName(t) !== normName(work));
     delete im.ownCharas; delete im.ownTags;
   }
