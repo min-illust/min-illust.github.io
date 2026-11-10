@@ -276,7 +276,7 @@ img{-webkit-user-drag:none;user-select:none;-webkit-user-select:none;-webkit-tou
   const groupHref = (key) => `${B.base}/#/g/${enc(key)}`;
   const groupOf = (p) => (D.groups || []).find(g => g.key === p.group);
   // 拡大表示用の画像リスト（一言・名前・日付つき）
-  const lbItems = (p) => p.images.map(im => ({ src: im.src, caption: im.caption || "", label: p.label, date: p.date, group: p.group, charas: im.charas || [], tags: im.tags || [] }));
+  const lbItems = (p) => p.images.map(im => ({ src: im.src, caption: im.caption || "", label: p.label, date: p.date, group: p.group, co: p.coWorks || [], charas: im.charas || [], tags: im.tags || [] }));
   // ひらがな・カタカナ、全角・半角、スペースの違いを同じものとして扱う
   const norm = (s) => String(s ?? "").normalize("NFKC").toLowerCase().replace(/[\u30a1-\u30f6]/g, (ch) => String.fromCharCode(ch.charCodeAt(0) - 0x60)).replace(/\s/g, "");
   const itHref = (t) => `${B.base}/#/it/${enc(t)}`;   // イラストのタグ
@@ -416,7 +416,7 @@ img{-webkit-user-drag:none;user-select:none;-webkit-user-select:none;-webkit-tou
     lists = {};
     const nv = norm(v);
     const ims = allImages().filter(im => (kind === "ic" ? im.charas : im.tags || []).some(x => norm(x) === nv));
-    lists.ill = ims.map(im => ({ src: im.src, caption: im.caption || "", label: im.label, date: im.date, group: im.group, charas: im.charas || [], tags: im.tags || [] }));
+    lists.ill = ims.map(im => ({ src: im.src, caption: im.caption || "", label: im.label, date: im.date, group: im.group, co: im.p.coWorks || [], charas: im.charas || [], tags: im.tags || [] }));
     const gks = [...new Set(ims.map(im => im.group))].map(k => (D.groups || []).find(g => g.key === k)).filter(Boolean);
     const title = kind === "ic" ? v : "#" + v;
     document.title = `${title} のイラスト｜Min. CREATIVE LOG`;
@@ -431,7 +431,7 @@ img{-webkit-user-drag:none;user-select:none;-webkit-user-select:none;-webkit-tou
     const hit = (arr) => { const hay = norm(arr.join(" ")); return words.every(w => hay.includes(w)); };
     const gs = words.length ? (D.groups || []).filter(g => { const ps = g.posts.map(s => D.posts.find(p => p.slug === s)).filter(Boolean); return hit([g.name, ...ps.flatMap(p => [...p.tags, p.comment])]); }) : [];
     const ims = words.length ? allImages().filter(im => hit([im.caption, im.label, ...(im.charas || []), ...(im.tags || []), im.p.work, im.p.comment])) : [];
-    lists.s = ims.map(im => ({ src: im.src, caption: im.caption || "", label: im.label, date: im.date, group: im.group, charas: im.charas || [], tags: im.tags || [] }));
+    lists.s = ims.map(im => ({ src: im.src, caption: im.caption || "", label: im.label, date: im.date, group: im.group, co: im.p.coWorks || [], charas: im.charas || [], tags: im.tags || [] }));
     document.title = `「${q}」の検索結果｜Min. CREATIVE LOG`;
     return crumbs([["検索"]]) + searchForm(q) + (words.length ? `
       <section class="sec" style="margin-top:24px"><div class="sec-h"><span class="label">WORKS</span><h2>作品</h2><em>${gs.length}件</em></div>${gs.length ? `<div class="groups">${gs.map(groupCard).join("")}</div>` : `<p class="lead" style="color:var(--ink-soft)">見つかりませんでした。</p>`}</section>
@@ -536,8 +536,11 @@ img{-webkit-user-drag:none;user-select:none;-webkit-user-select:none;-webkit-tou
     $("lbImg").src = it.src;
     const head = it.caption ? `${esc(it.caption)}<small>${esc(it.label)} · ${esc(it.date.replaceAll("-", "."))}</small>` : `${esc(it.label)}<small>${esc(it.date.replaceAll("-", "."))}</small>`;
     const tg = [...(it.charas || []).map(c => `<a class="ch" href="${icHref(c)}">#${esc(c)}</a>`), ...(it.tags || []).map(t => `<a href="${itHref(t)}">#${esc(t)}</a>`)].join("");
-    const here = it.group && location.hash === `#/g/${enc(it.group)}`;
-    $("lbCap").innerHTML = head + (tg ? `<div class="lbt">${tg}</div>` : "") + (it.group && !here && !B.post ? `<a class="wk" href="${groupHref(it.group)}">この作品を見る →</a>` : "");
+    // 作品へのボタン：コラボ絵は一緒に出ている作品へも（今いる作品は除く）
+    const gks = [it.group, ...(it.co || []).map(c => `w:${c.id}`)].filter(Boolean).filter(k => location.hash !== `#/g/${enc(k)}`);
+    const gname = (k) => ((D.groups || []).find(g => g.key === k) || {}).name || "";
+    const multi = (it.co || []).length > 0;
+    $("lbCap").innerHTML = head + (tg ? `<div class="lbt">${tg}</div>` : "") + (!B.post ? gks.map(k => `<a class="wk" href="${groupHref(k)}">${multi ? `「${esc(gname(k))}」を見る` : "この作品を見る"} →</a>`).join(" ") : "");
     $("lbBar").hidden = lbList.length < 2;
     $("lbCount").textContent = `${lbIdx + 1} / ${lbList.length}`;
   }

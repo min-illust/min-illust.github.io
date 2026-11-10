@@ -451,7 +451,8 @@ const idx={}; characters.forEach((c,i)=>idx[c.id]=i);
 const illustPosts=[];
 const illCache={};
 function illustsFor(c){ return illCache[c.id] ||= (c.illusts||[]).map(i=>({...i,wid:c.id,wtitle:c.title})); }
-const ALL_ILL=()=>characters.flatMap(illustsFor).sort((a,b)=>String(b.date).localeCompare(String(a.date)));
+// コラボ絵は複数の作品に入っているので、一覧では1枚にまとめる
+const ALL_ILL=()=>{const seen=new Set();return characters.flatMap(illustsFor).filter(i=>!seen.has(i.src)&&seen.add(i.src)).sort((a,b)=>String(b.date).localeCompare(String(a.date)));};
 // イラストのタグ・キャラ名から、イラスト一覧へ（キャラ一覧の中だけで移動）
 function goIll(kind,v){
   try{ if(window.goatcounter&&goatcounter.count) goatcounter.count({path:`chara-${kind==="ic"?"chara":"illust-tag"}/${v}`,title:(kind==="ic"?"キャラ：":"イラストのタグ：#")+v,event:true}); }catch(e){}
@@ -463,10 +464,13 @@ const lb=document.getElementById("lb"),lbImg=document.getElementById("lbImg");
 let lbList=[],lbI=0;
 function lbShow(){const it=lbList[lbI];lbImg.src=it.src;
   document.getElementById("lbCount").textContent=`${lbI+1} / ${lbList.length}`;
-  const here=typeof SOLO!=="undefined"&&SOLO&&SOLO.id===it.wid;
-  document.getElementById("lbCap").innerHTML=`<b>${esc(it.title)}</b><span>${esc(dot(it.date||""))}${it.wtitle&&it.wtitle!==it.title?` · ${esc(it.wtitle)}`:""}</span>
+  const curId=typeof SOLO!=="undefined"&&SOLO?SOLO.id:"";
+  // 作品へのボタン：コラボ絵は両方の作品へ（今いる作品は除く）
+  const ws=(it.works&&it.works.length?it.works:(it.wid?[{id:it.wid,title:it.wtitle}]:[])).filter(w=>w.id!==curId);
+  const multi=(it.works||[]).length>1;
+  document.getElementById("lbCap").innerHTML=`<b>${esc(it.title)}</b><span>${esc(dot(it.date||""))}${(it.works||[]).length>1?` · ${it.works.map(w=>esc(w.title)).join(" × ")}`:it.wtitle&&it.wtitle!==it.title?` · ${esc(it.wtitle)}`:""}</span>
     <div class="lb-tags">${(it.charas||[]).map(c=>`<button class="ch" data-ic="${esc(c)}">#${esc(c)}</button>`).join("")}${(it.tags||[]).map(t=>`<button data-it="${esc(t)}">#${esc(t)}</button>`).join("")}</div>
-    ${it.wid&&!here?`<a class="lb-work" href="${CHARA_TOP}w/${esc(it.wid)}/">この作品を見る →</a>`:""}`;
+    ${ws.map(w=>`<a class="lb-work" href="${CHARA_TOP}w/${esc(w.id)}/">${multi?`「${esc(w.title)}」を見る`:"この作品を見る"} →</a>`).join(" ")}`;
   document.getElementById("lbP").style.display=document.getElementById("lbN").style.display=lbList.length>1?"":"none";}
 function lbOpen(list,i){lbList=list;lbI=i;lbShow();lb.classList.add("on")}
 document.getElementById("lbCap").addEventListener("click",e=>{
@@ -758,7 +762,7 @@ if(SOLO){
   document.body.classList.add("ill");
   const v=ILLQ.v, nv=norm(v);
   const list=ALL_ILL().filter(i=>ILLQ.kind==="ic"?(i.charas||[]).some(c=>norm(c)===nv):(i.tags||[]).some(t=>norm(t)===nv));
-  const works=[...new Map(list.map(i=>[i.wid,i.wtitle])).entries()];
+  const works=[...new Map(list.flatMap(i=>i.works&&i.works.length?i.works:[{id:i.wid,title:i.wtitle}]).map(w=>[w.id,w.title])).entries()];
   const box=document.getElementById("illv");
   box.innerHTML=`<a class="back" href="${CHARA_TOP}">← すべての作品へ</a>
     <h2>${ILLQ.kind==="ic"?esc(v):"#"+esc(v)}<small style="font-size:13px;font-weight:700"> のイラスト</small></h2>

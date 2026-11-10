@@ -184,10 +184,14 @@ for (const f of files) {
   const workSel = String(raw.work || "").trim(), workName = String(raw.work_name || "").trim();
   const w = isOrig ? null : findWork(charapu, [workSel, workName].filter(Boolean), tags);
   const work = w ? w.title : workSel || workName || (isOrig ? "オリジナル" : "");
-  let charas = uniqTags([...list(raw.charas), ...list(raw.charas_free)]);
+  // コラボ：一緒に出ている作品（メインの作品以外）
+  const coWorks = [];
+  for (const n of list(raw.works_with)) { const cw = findWork("", [n], []); if (cw && (!w || cw.id !== w.id) && !coWorks.some((x) => x.id === cw.id)) coWorks.push({ id: cw.id, title: cw.title }); }
+  if (isOrig) coWorks.length = 0;
+  let charas = uniqTags([...list(raw.charas), ...list(raw.charas_any), ...list(raw.charas_free)]);
   if (!charas.length && w && w.charas.length === 1) charas = [w.charas[0]]; // 1人だけの作品はキャラ名を自動で
   // 旧データ：作品名・キャラ名がタグに入っている場合は、属性タグから外す
-  const attr = tags.filter((t) => normName(t) !== normName(work) && !charas.some((c) => normName(c) === normName(t)) && !(w && w.names.includes(normName(t))));
+  const attr = uniqTags([...(coWorks.length ? ["コラボ"] : []), ...tags]).filter((t) => normName(t) !== normName(work) && !coWorks.some((x) => normName(x.title) === normName(t)) && !charas.some((c) => normName(c) === normName(t)) && !(w && w.names.includes(normName(t))));
   // 画像ごと：キャラ（空なら投稿のキャラ名）と、属性タグ（投稿全体のタグ＋その画像のタグ）
   for (const im of images) {
     const own = uniqTags(im.ownCharas);
@@ -204,8 +208,8 @@ for (const f of files) {
     category, images, media, coverIdx: coverIdx < 0 ? 0 : coverIdx,
     music: MUSIC_CATS.includes(category) || (!images.length && media.length > 0), // 曲・動画の投稿（新着やカードに♪）
     comment: String(raw.comment || ""),
-    work, workId: w ? w.id : "", charas: allCharas,
-    tags: uniqTags([work, ...allCharas, ...allAttrs]), // 表示するタグ：作品名 → キャラ名 → 属性の順
+    work, workId: w ? w.id : "", coWorks, charas: allCharas,
+    tags: uniqTags([work, ...coWorks.map((x) => x.title), ...allCharas, ...allAttrs]), // 表示するタグ：作品名 → キャラ名 → 属性の順
     attrs: attr,
     unmatched: !w && !isOrig && (workSel || AI_CATS.includes(category)) ? (workSel || workName || "（作品名なし）") : "",
     charapu, pickup: !!raw.pickup,
@@ -305,7 +309,10 @@ for (const w of works) {
     .map((u) => ({ date: day(u && u.date), text: String((u && u.text) || "").trim() }))
     .filter((u) => u.date && u.text).sort((a, b) => b.date.localeCompare(a.date));
   const illusts = [];
-  for (const p of posts) if (p.workId === w.id) for (const im of p.images) illusts.push({ src: im.src, thumb: im.thumb, title: im.caption || p.label, date: p.date, charas: im.charas, tags: im.tags });
+  for (const p of posts) if (p.workId === w.id || p.coWorks.some((x) => x.id === w.id)) {
+    const ws = [...(p.workId ? [{ id: p.workId, title: p.work }] : []), ...p.coWorks]; // コラボ絵は両方の作品に出す
+    for (const im of p.images) illusts.push({ src: im.src, thumb: im.thumb, title: im.caption || p.label, date: p.date, charas: im.charas, tags: im.tags, works: ws.length > 1 ? ws : undefined });
+  }
   // タグ：作品名 → 登場キャラ名 → 属性（旧データで作品名・キャラ名がタグにあっても二重にしない）
   const attr = uniqTags(list(raw.tags)).filter((t) => normName(t) !== normName(w.title) && !w.charas.some((c) => normName(c) === normName(t)));
   characters.push({
@@ -379,14 +386,7 @@ const origFile = await readJSON(path.join(ROOT, "content/originals.json"), { cov
 const origCovers = new Map();
 for (const c of origFile.covers || []) { const n = normName(c && c.name); if (n && c.image) origCovers.set(n, await charaThumb(c.image)); }
 const groupMap = new Map();
-for (const p of posts) { // posts は新しい順
-  let key, name;
-  if (p.workId) { key = `w:${p.workId}`; name = p.work; }
-  else if (ORIG_CATS.includes(p.category)) { key = `o:${normName(p.charas[0] || "")}`; name = p.charas[0] || "オリジナル"; }
-  else if (p.work) { key = `n:${normName(p.work)}`; name = p.work; }
-  else if (p.attrs[0]) { key = `t:${normName(p.attrs[0])}`; name = p.attrs[0]; }
-  else { key = `c:${p.category}`; name = p.category; }
-  p.group = key;
+const addToGroup = (p, key, name) => {
   let g = groupMap.get(key);
   if (!g) groupMap.set(key, g = { key, name, updated: p.date, first: p.date, cover: "", cats: [], posts: [], pics: 0, charapu: "" });
   g.posts.push(p.slug);
@@ -395,6 +395,17 @@ for (const p of posts) { // posts は新しい順
   const cv = coverOf(p); if (cv) g.cover = cv; // 表紙はいちばん古い投稿の表紙で固定（下で上書きあり）
   if (!g.charapu && p.charapu) g.charapu = p.charapu;
   if (!g.cats.includes(p.category)) g.cats.push(p.category);
+};
+for (const p of posts) { // posts は新しい順
+  let key, name;
+  if (p.workId) { key = `w:${p.workId}`; name = p.work; }
+  else if (ORIG_CATS.includes(p.category)) { key = `o:${normName(p.charas[0] || "")}`; name = p.charas[0] || "オリジナル"; }
+  else if (p.work) { key = `n:${normName(p.work)}`; name = p.work; }
+  else if (p.attrs[0]) { key = `t:${normName(p.attrs[0])}`; name = p.attrs[0]; }
+  else { key = `c:${p.category}`; name = p.category; }
+  p.group = key;
+  addToGroup(p, key, name);
+  for (const cw of p.coWorks) addToGroup(p, `w:${cw.id}`, cw.title); // コラボ：もう一方の作品のページにも並べる
 }
 for (const g of groupMap.values()) {
   if (g.key.startsWith("w:")) { const c = characters.find((x) => `w:${x.id}` === g.key); if (c && c.thumb) g.cover = c.thumb; if (c) { g.story = c.story; g.talks = c.talks; } }      // キャラぷ：キャラリンク集の顔・ストーリー・トーク

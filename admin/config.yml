@@ -67,6 +67,27 @@ collections:
         required: false
         filters: [{ field: title, values: ["{{fields.work}}"] }]
         hint: "全部の画像に付きます。1人だけの作品なら空でOK（自動で入ります）。/admin2/ では上で選んだ作品のキャラだけが候補に出ます"
+      - name: works_with
+        label: 一緒に出ている作品（コラボ絵のとき・複数OK・任意）
+        widget: relation
+        collection: characters
+        search_fields: [title]
+        display_fields: [title]
+        value_field: title
+        multiple: true
+        options_length: 100
+        required: false
+        hint: "違う作品のキャラが一緒に出ている絵のとき、もう一方の作品を選びます。両方の作品のページに絵が出て、#コラボ のタグが自動で付きます"
+      - name: charas_any
+        label: コラボ相手のキャラ名（全作品のキャラから・複数OK・任意）
+        widget: relation
+        collection: characters
+        value_field: "charas.*"
+        search_fields: ["charas.*"]
+        display_fields: ["charas.*"]
+        multiple: true
+        required: false
+        hint: "一緒に出ている作品のキャラを選びます（上の「キャラ名」は選んだメインの作品のキャラだけが候補に出るため）"
       - { name: charas_free, label: キャラ名（一覧にないとき・オリジナル・手入力）, label_singular: キャラ名, widget: list, required: false, hint: "名前のあるオリジナルキャラや、まだ登録していないキャラ" }
       - name: images
         label: 画像（複数OK・任意）
