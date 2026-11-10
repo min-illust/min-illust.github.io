@@ -1,0 +1,102 @@
+{
+  "title": "",
+  "date": "2026-11-10",
+  "category": "AI CHARACTERS",
+  "work": "極道一家鷹峰三兄弟",
+  "work_name": "",
+  "charas": [],
+  "charas_free": [],
+  "images": [
+    {
+      "src": "/images/幼少期.jpg",
+      "caption": "昔",
+      "cover": false,
+      "charas": [
+        "鷹峰尊士",
+        "鷹峰凪",
+        "鷹峰澪"
+      ],
+      "tags": []
+    },
+    {
+      "src": "/images/プリクラ.jpg",
+      "caption": "プリクラ",
+      "cover": false,
+      "charas": [],
+      "tags": []
+    },
+    {
+      "src": "/images/寝顔.jpg",
+      "caption": "睡眠中",
+      "cover": false,
+      "charas": [
+        "鷹峰尊士"
+      ],
+      "tags": []
+    },
+    {
+      "src": "/images/スチル_09.jpg",
+      "caption": "至福の時",
+      "cover": false,
+      "charas": [
+        "鷹峰尊士"
+      ],
+      "tags": []
+    },
+    {
+      "src": "/images/スチル_03.jpg",
+      "caption": "路地裏",
+      "cover": false,
+      "charas": [
+        "鷹峰凪"
+      ],
+      "tags": []
+    },
+    {
+      "src": "/images/スチル_06-2.jpg",
+      "caption": "高校時代",
+      "cover": false,
+      "charas": [
+        "鷹峰凪"
+      ],
+      "tags": []
+    },
+    {
+      "src": "/images/スチル_01.jpg",
+      "caption": "お昼寝",
+      "cover": false,
+      "charas": [
+        "鷹峰澪"
+      ],
+      "tags": []
+    },
+    {
+      "src": "/images/スチル_02.jpg",
+      "caption": "料理中",
+      "cover": false,
+      "charas": [
+        "鷹峰澪"
+      ],
+      "tags": []
+    },
+    {
+      "src": "/images/魔王と悪魔.jpg",
+      "caption": "魔王と悪魔",
+      "cover": false,
+      "charas": [
+        "鷹峰尊士",
+        "鷹峰凪"
+      ],
+      "tags": []
+    }
+  ],
+  "images_bulk": [],
+  "bulk_captions": "",
+  "bulk_tags": "",
+  "bulk_cover": null,
+  "media": [],
+  "comment": "",
+  "tags": [],
+  "charapu": "",
+  "pickup": false
+}
