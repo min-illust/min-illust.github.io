@@ -1,5 +1,5 @@
 {
-  "title": "",
+  "title": "シェアハウスコラボ",
   "date": "2026-11-10",
   "category": "AI CHARACTERS",
   "work": "激重彼氏に今日も怒られてます",
@@ -10,9 +10,7 @@
   "works_with": [
     "訳ありシェアハウス四季"
   ],
-  "charas_any": [
-    "夏坂律希"
-  ],
+  "charas_any": [],
   "charas_free": [],
   "images": [
     {
@@ -20,7 +18,20 @@
       "caption": "忍者",
       "cover": false,
       "charas": [],
-      "tags": []
+      "tags": [
+        "夏坂律希"
+      ]
+    },
+    {
+      "src": "/images/スチル_06-3.jpg",
+      "caption": "地雷",
+      "cover": false,
+      "charas": [
+        "綾瀬唯斗"
+      ],
+      "tags": [
+        "春宮琉衣"
+      ]
     }
   ],
   "images_bulk": [],
