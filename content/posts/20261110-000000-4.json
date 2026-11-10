@@ -1,0 +1,90 @@
+{
+  "title": "",
+  "date": "2026-11-10",
+  "category": "AI CHARACTERS",
+  "work": "訳ありシェアハウス四季",
+  "work_name": "",
+  "charas": [
+    "春宮琉衣"
+  ],
+  "works_with": [],
+  "charas_any": [],
+  "charas_free": [],
+  "images": [
+    {
+      "src": "/images/スチル_02-1.jpg",
+      "caption": "盗賊",
+      "cover": false,
+      "charas": [
+        "春宮琉衣"
+      ],
+      "tags": []
+    },
+    {
+      "src": "/images/スチル_11-3.jpg",
+      "caption": "陰陽師",
+      "cover": false,
+      "charas": [
+        "冬月澄人"
+      ],
+      "tags": []
+    },
+    {
+      "src": "/images/スチル_09-2.jpg",
+      "caption": "雨の日のお迎え",
+      "cover": false,
+      "charas": [
+        "夏坂律希"
+      ],
+      "tags": []
+    },
+    {
+      "src": "/images/スチル_10.jpg",
+      "caption": "廃墟に立つ",
+      "cover": false,
+      "charas": [
+        "夏坂律希"
+      ],
+      "tags": []
+    },
+    {
+      "src": "/images/スチル_07-1.jpg",
+      "caption": "聖騎士",
+      "cover": false,
+      "charas": [
+        "秋月慶介"
+      ],
+      "tags": []
+    },
+    {
+      "src": "/images/スチル_12.jpg",
+      "caption": "魔法使い",
+      "cover": false,
+      "charas": [
+        "冬月澄人"
+      ],
+      "tags": []
+    },
+    {
+      "src": "/images/スチル_02-2.jpg",
+      "caption": "吸血鬼と天使",
+      "cover": false,
+      "charas": [
+        "秋月慶介",
+        "冬月澄人"
+      ],
+      "tags": [
+        "ハロウィン"
+      ]
+    }
+  ],
+  "images_bulk": [],
+  "bulk_captions": "",
+  "bulk_tags": "",
+  "bulk_cover": null,
+  "media": [],
+  "comment": "",
+  "tags": [],
+  "charapu": "",
+  "pickup": false
+}
