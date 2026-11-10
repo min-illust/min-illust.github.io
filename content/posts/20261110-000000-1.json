@@ -5,6 +5,8 @@
   "work": "極道一家鷹峰三兄弟",
   "work_name": "",
   "charas": [],
+  "works_with": [],
+  "charas_any": [],
   "charas_free": [],
   "images": [
     {
@@ -22,6 +24,42 @@
       "cover": false,
       "charas": [
         "鷹峰凪"
+      ],
+      "tags": []
+    },
+    {
+      "src": "/images/スチル_09-1.jpg",
+      "caption": "吸血鬼",
+      "cover": false,
+      "charas": [
+        "鷹峰尊士"
+      ],
+      "tags": []
+    },
+    {
+      "src": "/images/スチル_11.jpg",
+      "caption": "バイク",
+      "cover": false,
+      "charas": [
+        "鷹峰尊士"
+      ],
+      "tags": []
+    },
+    {
+      "src": "/images/スチル_11-2.jpg",
+      "caption": "黒魔術師",
+      "cover": false,
+      "charas": [
+        "鷹峰凪"
+      ],
+      "tags": []
+    },
+    {
+      "src": "/images/スチル_35.jpg",
+      "caption": "天使",
+      "cover": false,
+      "charas": [
+        "鷹峰澪"
       ],
       "tags": []
     }
