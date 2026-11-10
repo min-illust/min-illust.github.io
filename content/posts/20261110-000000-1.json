@@ -19,11 +19,11 @@
       "tags": []
     },
     {
-      "src": "/images/スチル_08-1.jpg",
-      "caption": "屋上",
+      "src": "/images/スチル_12-1.jpg",
+      "caption": "BAR",
       "cover": false,
       "charas": [
-        "鷹峰凪"
+        "鷹峰尊士"
       ],
       "tags": []
     },
@@ -42,6 +42,15 @@
       "cover": false,
       "charas": [
         "鷹峰尊士"
+      ],
+      "tags": []
+    },
+    {
+      "src": "/images/スチル_08-1.jpg",
+      "caption": "屋上",
+      "cover": false,
+      "charas": [
+        "鷹峰凪"
       ],
       "tags": []
     },
