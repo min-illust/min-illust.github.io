@@ -10,7 +10,17 @@
   "works_with": [],
   "charas_any": [],
   "charas_free": [],
-  "images": [],
+  "images": [
+    {
+      "src": "/images/image.jpg",
+      "caption": "高校時代",
+      "cover": false,
+      "charas": [],
+      "tags": [
+        "学生服"
+      ]
+    }
+  ],
   "images_bulk": [
     "/images/スチル_01-3.jpg"
   ],
