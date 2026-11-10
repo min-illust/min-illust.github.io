@@ -1,0 +1,38 @@
+{
+  "title": "",
+  "date": "2026-11-10",
+  "category": "AI CHARACTERS",
+  "work": "極道一家鷹峰三兄弟",
+  "work_name": "",
+  "charas": [],
+  "charas_free": [],
+  "images": [
+    {
+      "src": "/images/スチル_04.jpg",
+      "caption": "煙草",
+      "cover": false,
+      "charas": [
+        "鷹峰尊士"
+      ],
+      "tags": []
+    },
+    {
+      "src": "/images/スチル_08-1.jpg",
+      "caption": "屋上",
+      "cover": false,
+      "charas": [
+        "鷹峰凪"
+      ],
+      "tags": []
+    }
+  ],
+  "images_bulk": [],
+  "bulk_captions": "",
+  "bulk_tags": "",
+  "bulk_cover": null,
+  "media": [],
+  "comment": "",
+  "tags": [],
+  "charapu": "https://s.kyarapu.com/s/6aeda342c43e3162f8c108d7",
+  "pickup": false
+}
