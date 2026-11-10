@@ -47,3 +47,5 @@ jobs:
     steps:
       - id: deployment
         uses: actions/deploy-pages@v4
+        with:
+          timeout: 1800000  # GitHub Pagesの反映が遅い日でも30分まで待つ（初期値は10分）

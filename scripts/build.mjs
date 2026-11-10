@@ -446,7 +446,29 @@ console.log(`作品まとめ：${groups.length} 件`);
 await fs.mkdir(path.join(OUT, "admin"), { recursive: true });
 await fs.writeFile(path.join(OUT, "admin/index.html"), `<!doctype html><meta charset="utf-8"><meta name="robots" content="noindex"><meta http-equiv="refresh" content="0;url=${ADMIN_URL}"><a href="${ADMIN_URL}">管理画面へ</a>`);
 // Netlifyの管理画面で画像を確認できるよう、元の画像を /images/ に置く（サイト本体は軽くした img/ を使う）
-if (await exists(path.join(ROOT, "images"))) await fs.cp(path.join(ROOT, "images"), path.join(OUT, "images"), { recursive: true });
+// 公開するサイトを軽く保つため、管理画面の確認用には小さくした画像を同じファイル名で置く（元画像は公開しない）
+if (await exists(path.join(ROOT, "images"))) {
+  await fs.mkdir(path.join(OUT, "images"), { recursive: true });
+  const cacheDir = path.join(ROOT, ".cache/admin-img");
+  await fs.mkdir(cacheDir, { recursive: true });
+  for (const name of await fs.readdir(path.join(ROOT, "images"))) {
+    const src = path.join(ROOT, "images", name), dest = path.join(OUT, "images", name);
+    if (!(await fs.stat(src)).isFile()) continue;
+    const ext = path.extname(name).toLowerCase();
+    if (!sharp || ![".jpg", ".jpeg", ".png", ".webp"].includes(ext)) { await fs.copyFile(src, dest); continue; }
+    const buf = await fs.readFile(src);
+    const hash = crypto.createHash("sha1").update(buf).digest("hex").slice(0, 16);
+    const cached = path.join(cacheDir, hash + ext);
+    if (!(await exists(cached))) {
+      try {
+        let im = sharp(buf, { failOn: "none" }).rotate().resize({ width: 640, height: 640, fit: "inside", withoutEnlargement: true });
+        im = ext === ".png" ? im.png({ compressionLevel: 9, palette: true }) : ext === ".webp" ? im.webp({ quality: 70 }) : im.jpeg({ quality: 72, mozjpeg: true });
+        await fs.writeFile(cached, await im.toBuffer());
+      } catch { await fs.copyFile(src, cached); }
+    }
+    await fs.copyFile(cached, dest);
+  }
+}
 
 // 自分用：透かしツール（/tool/・どこからもリンクしない）
 await fs.mkdir(path.join(OUT, "tool"), { recursive: true });
