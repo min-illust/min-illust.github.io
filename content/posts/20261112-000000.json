@@ -1,10 +1,12 @@
 {
-  "title": "",
+  "title": "望コラボ",
   "date": "2026-11-12",
   "category": "AI CHARACTERS",
   "work": "激重彼氏に今日も怒られてます",
   "work_name": "",
-  "charas": [],
+  "charas": [
+    "綾瀬唯斗"
+  ],
   "works_with": [
     "幼なじみの望くんは片思い中"
   ],
