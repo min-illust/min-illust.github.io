@@ -2,7 +2,7 @@
   "title": "",
   "date": "2026-11-11",
   "category": "AI CHARACTERS",
-  "work": "人気アイドルは天邪鬼",
+  "work": "人気アイドルと秘密の一夜",
   "work_name": "",
   "charas": [],
   "works_with": [],
@@ -19,6 +19,20 @@
     {
       "src": "/images/スチル_13.png",
       "caption": "執事 休憩中",
+      "cover": false,
+      "charas": [],
+      "tags": []
+    },
+    {
+      "src": "/images/IMG_2906.jpeg",
+      "caption": "眠る前",
+      "cover": false,
+      "charas": [],
+      "tags": []
+    },
+    {
+      "src": "/images/スチル_23_Min.jpg",
+      "caption": "ちび悪魔",
       "cover": false,
       "charas": [],
       "tags": []
