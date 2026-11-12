@@ -12,9 +12,10 @@
   "charas_free": [],
   "images": [],
   "images_bulk": [
-    "/images/スチル_01-5.jpg"
+    "/images/スチル_01-5.jpg",
+    "/images/スチル_38.jpg"
   ],
-  "bulk_captions": "お風呂上がり",
+  "bulk_captions": "お風呂上がり\n和服",
   "bulk_tags": "",
   "bulk_cover": null,
   "media": [],
