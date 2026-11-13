@@ -166,6 +166,7 @@ for (const f of files) {
   // まとめて追加した画像は、1枚ずつの画像のあとに並べる。一言は「上から順に1行ずつ」、表紙は「何枚目か」
   const bulkCaps = String(raw.bulk_captions || "").split(/\r?\n/);
   const bulkTags = String(raw.bulk_tags || "").split(/\r?\n/);
+  const bulkCharas = String(raw.bulk_charas || "").split(/\r?\n/);
   const bulkCover = parseInt(raw.bulk_cover, 10);
   let bi = 0;
   for (const src of list(raw.images_bulk)) {
@@ -173,7 +174,7 @@ for (const f of files) {
     const r = await processImage(src);
     if (!r || images.some((x) => x.src === r.src)) continue;
     if (coverIdx < 0 && bulkCover === n + 1) coverIdx = images.length;
-    images.push({ ...r, caption: String(bulkCaps[n] || "").trim(), ownCharas: [], ownTags: String(bulkTags[n] || "").split(/[,、，]/) });
+    images.push({ ...r, caption: String(bulkCaps[n] || "").trim(), ownCharas: String(bulkCharas[n] || "").split(/[,、，]/), ownTags: String(bulkTags[n] || "").split(/[,、，]/) });
   }
   const media = [];
   for (const m of list(raw.media)) { const r = await parseMedia(m); if (r) media.push(r); }
@@ -201,7 +202,8 @@ for (const f of files) {
     const own = uniqTags(im.ownCharas);
     const tagCh = uniqTags(im.ownTags).filter((t) => KNOWN_CHARAS.has(normName(t)));
     im.ownTags = uniqTags(im.ownTags).filter((t) => !KNOWN_CHARAS.has(normName(t)));
-    im.charas = uniqTags([...(own.length ? [...own, ...partners] : charas), ...tagCh]);
+    const mine = uniqTags([...own, ...tagCh]);
+    im.charas = mine.length ? uniqTags([...mine, ...partners]) : charas;
     im.tags = uniqTags([...attr, ...im.ownTags]).filter((t) => !im.charas.some((c) => normName(c) === normName(t)) && normName(t) !== normName(work));
     delete im.ownCharas; delete im.ownTags;
   }

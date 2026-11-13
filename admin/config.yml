@@ -112,6 +112,7 @@ collections:
           - { name: tags, label: この画像のタグ（任意・カンマ区切り）, widget: list, required: false, hint: "投稿全体のタグに追加で付きます（スーツ・眼鏡など）" }
       - { name: images_bulk, label: 画像（まとめて追加・任意）, widget: image, multiple: true, required: false, choose_url: false, hint: "複数の画像をまとめて選べます（/admin2/ の管理画面）。一言や表紙を付けたい画像は上の「画像」の欄へ。ここの画像は上の画像のあとに並びます" }
       - { name: bulk_captions, label: まとめて追加した画像の一言（任意・上から順に1行ずつ）, widget: text, required: false, hint: "1行目が1枚目、2行目が2枚目…。一言がいらない画像は空の行にしてください" }
+      - { name: bulk_charas, label: まとめて追加した画像のキャラ（任意・上から順に1行ずつ・2人以上はカンマ区切り）, widget: text, required: false, hint: "例：1行目「蒼司」2行目「蓮」3行目「蒼司, 蓮」。空の行の画像は、投稿の「キャラ名」が付きます" }
       - { name: bulk_tags, label: まとめて追加した画像のタグ（任意・上から順に1行ずつ・1行の中はカンマ区切り）, widget: text, required: false, hint: "例：1行目「ハロウィン, 仮装」2行目「仕事」。タグがいらない画像は空の行に" }
       - { name: bulk_cover, label: まとめて追加した画像で表紙にするもの（任意・何枚目か）, widget: number, value_type: int, min: 1, required: false, hint: "例：3 なら、まとめて追加した3枚目が表紙（新着の1枚目）。上の「画像」の欄で表紙にチェックがあればそちらが優先" }
       - name: media
