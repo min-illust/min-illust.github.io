@@ -155,6 +155,8 @@
   }
   .mini.new{background:var(--red);color:var(--paper);transform:rotate(5deg)}
   .mini.up{background:var(--yellow);color:var(--ink);transform:rotate(-4deg)}
+  .mini.new+.mini.up{top:12px}            /* NEWとUPが両方つくときは縦に並べる */
+  .row .mini.new+.mini.up{top:11px}
 
   /* ===== LIST VIEW ===== */
   .list{display:flex;flex-direction:column;gap:12px;margin-top:16px}
@@ -428,6 +430,9 @@ function status(c){
   const lu=lastUpdate(c); if(lu&&daysAgo(lu)<=BADGE_DAYS) return "up";
   return "";
 }
+// NEWの作品でも、そのあとイラストなどを追加していればUPも付ける
+function isUp(c){const lu=lastUpdate(c);return !!lu&&daysAgo(lu)<=BADGE_DAYS}
+function marks(c){return [...(daysAgo(c.published)<=BADGE_DAYS?["new"]:[]),...(isUp(c)?["up"]:[])]}
 
 /* 見本用の顔イラスト（本番はアップした画像） */
 const faceCache={};
@@ -567,7 +572,7 @@ function render(){
   if(state.tag) document.getElementById("tagOff").onclick=()=>setTag("");
   document.getElementById("count").textContent=`${arr.length} / ${characters.length} CHARA`;
   if(!arr.length){box.innerHTML=`<p class="empty"><b>NO HIT</b>条件に合うキャラがいません</p>`;return}
-  const badge=c=>{const s=status(c);return (hasBday(c)?`<span class="cake" title="今日が誕生日">🎂</span>`:"")+(s?`<span class="mini ${s}">${s==="new"?"NEW":"UP"}</span>`:"")};
+  const badge=c=>{const s=status(c);return (hasBday(c)?`<span class="cake" title="今日が誕生日">🎂</span>`:"")+marks(c).map(m=>`<span class="mini ${m}">${m==="new"?"NEW":"UP"}</span>`).join("")};
   if(state.view==="grid"){
     box.innerHTML=`<div class="grid">${arr.map(c=>`
       <button class="cell" data-id="${esc(c.id)}">
@@ -635,8 +640,7 @@ function profilesHTML(c){
   return `<div class="prof"><h4>PROFILE</h4><div class="prof-grid${ps.length>1?" many":""}">${ps.map(pf=>{
     const rows=[...(pf.birthday?[["誕生日",pf.birthday]]:[]),...pf.items.map(i=>[i.label,i.value])];
     const html=rows.map(([k,v],i)=>`${i===PF_SHOW?'<div class="rest">':""}<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`).join("")+(rows.length>PF_SHOW?"</div>":"");
-    const tk=(c.talks||[]).find(t=>t.name&&norm(t.name)===norm(pf.name)&&isKyarapu(t.url));
-    return `<div class="pf"><b>${esc(pf.name)}${isBday(pf)?`<span class="bday">🎂 HAPPY BIRTHDAY</span>`:""}</b><dl>${html}</dl>${rows.length>PF_SHOW?`<button data-pf="1">もっと見る ▼</button>`:""}${tk?`<a class="pf-talk" href="${esc(tk.url)}" target="_blank" rel="noopener">TALK<small>${esc(pf.name)}と話す ↗</small></a>`:""}</div>`;
+    return `<div class="pf"><b>${esc(pf.name)}${isBday(pf)?`<span class="bday">🎂 HAPPY BIRTHDAY</span>`:""}</b><dl>${html}</dl>${rows.length>PF_SHOW?`<button data-pf="1">もっと見る ▼</button>`:""}</div>`;
   }).join("")}</div></div>`;
 }
 document.addEventListener("click",e=>{
@@ -670,7 +674,7 @@ function detailHTML(c,all,solo){
     <div class="sh-top">
       <img src="${face(c,idx[c.id])}" alt="${esc(c.title)}">
       <div>
-        <div class="sh-badges">${s==="new"?`<span class="bd new">NEW</span>`:s==="up"?`<span class="bd up">UPDATE</span>`:""}</div>
+        <div class="sh-badges">${marks(c).map(m=>m==="new"?`<span class="bd new">NEW</span>`:`<span class="bd up">UPDATE</span>`).join("")}</div>
         ${solo?`<h2 class="sh-title">${esc(c.title)}</h2>`:`<h3 class="sh-title">${esc(c.title)}</h3>`}
         <p class="sh-cat">${esc(c.category)}</p>
         <div class="sh-genres">${(c.genres||[]).map(g=>`<span class="sg">${esc(g)}</span>`).join("")}</div>
