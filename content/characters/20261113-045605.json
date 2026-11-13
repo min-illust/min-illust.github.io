@@ -1,0 +1,52 @@
+{
+  "title": "今ちょっと時間ある？",
+  "published": "2026-07-07",
+  "category": "1:1ロールプレイ",
+  "genres": [
+    "恋愛",
+    "日常・現代"
+  ],
+  "tagline": "初対面でも気軽に声をかけてくる、距離感の近い男。\n軽い調子で話すけれど、\n相手の反応はちゃんと見ている。\nある日、街中で突然声をかけられる。",
+  "synopsis": "",
+  "profiles": [
+    {
+      "name": "若宮嵐",
+      "birthday": "10/12",
+      "items": [
+        {
+          "label": "血液型",
+          "value": "B型"
+        },
+        {
+          "label": "身長",
+          "value": "182cm"
+        },
+        {
+          "label": "好きなもの",
+          "value": "ジャンクフード、動物"
+        },
+        {
+          "label": "苦手なもの",
+          "value": "ピーマン、雷、暗いところ"
+        },
+        {
+          "label": "趣味",
+          "value": "ゲーム"
+        },
+        {
+          "label": "休みの日",
+          "value": "家でゲームか、気になっている店に行く。"
+        }
+      ]
+    }
+  ],
+  "charas": [],
+  "tags": [],
+  "featured": false,
+  "thumb": "/images/01_平常時-3.png",
+  "story": "https://s.kyarapu.com/s/6a49e9a6f2847df642416eed",
+  "talk": "https://s.kyarapu.com/s/6a4bf2cd39b8617968803ae3",
+  "talks": [],
+  "updates": [],
+  "illust_tags": []
+}
