@@ -1,0 +1,89 @@
+{
+  "title": "彼氏に二股バレました",
+  "published": "2026-11-13",
+  "category": "シミュレーション",
+  "genres": [
+    "恋愛",
+    "日常・現代"
+  ],
+  "tagline": "二人の彼氏と、それぞれ交際中。\nある日、斗亜の部屋で過ごしていると、もう一人の彼氏・彗がやってきた。\nしかも、二人は高校時代からの親友だった！？\n『そんなの聞いてない！！！！！』",
+  "synopsis": "",
+  "profiles": [
+    {
+      "name": "鈴村彗",
+      "birthday": "7/7",
+      "items": [
+        {
+          "label": "血液型",
+          "value": "O型"
+        },
+        {
+          "label": "身長",
+          "value": "178cm"
+        },
+        {
+          "label": "好きな食べ物",
+          "value": "肉料理"
+        },
+        {
+          "label": "苦手なもの",
+          "value": "にんじん"
+        },
+        {
+          "label": "趣味",
+          "value": "映画鑑賞"
+        },
+        {
+          "label": "実は…",
+          "value": "虫が大嫌い"
+        }
+      ]
+    },
+    {
+      "name": "倉持斗亜",
+      "birthday": "6/6",
+      "items": [
+        {
+          "label": "血液型",
+          "value": "A型"
+        },
+        {
+          "label": "身長",
+          "value": "178cm"
+        },
+        {
+          "label": "好きな食べ物",
+          "value": "和食"
+        },
+        {
+          "label": "苦手なもの",
+          "value": "甘すぎるもの"
+        },
+        {
+          "label": "趣味",
+          "value": "戦略ゲームやシミュレーションゲーム"
+        },
+        {
+          "label": "実は…",
+          "value": "暗いところが苦手"
+        }
+      ]
+    }
+  ],
+  "charas": [
+    "鈴村彗",
+    "倉持斗亜"
+  ],
+  "tags": [
+    "彼氏",
+    "親友",
+    "浮気"
+  ],
+  "featured": false,
+  "thumb": "/images/スチル_10.png",
+  "story": "https://s.kyarapu.com/s/6af6f9c6f04cef83932e9025",
+  "talk": "",
+  "talks": [],
+  "updates": [],
+  "illust_tags": []
+}
