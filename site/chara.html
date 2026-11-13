@@ -421,7 +421,8 @@ function isKyarapu(url){
 const norm=s=>String(s??"").normalize("NFKC").toLowerCase()
   .replace(/[ァ-ヶ]/g,ch=>String.fromCharCode(ch.charCodeAt(0)-0x60));
 
-function lastUpdate(c){return (c.updates||[]).map(u=>u.date).sort().pop()||""}
+// 最終更新：更新履歴の日付と、イラストを追加した日（公開日より後のもの）のうち新しい方
+function lastUpdate(c){return [...(c.updates||[]).map(u=>u.date),...(c.illusts||[]).map(i=>i.date).filter(d=>d&&d>c.published)].sort().pop()||""}
 function status(c){
   if(daysAgo(c.published)<=BADGE_DAYS) return "new";
   const lu=lastUpdate(c); if(lu&&daysAgo(lu)<=BADGE_DAYS) return "up";
