@@ -1,0 +1,47 @@
+{
+  "title": "毒舌彼氏",
+  "published": "2026-07-13",
+  "category": "1:1ロールプレイ",
+  "genres": [
+    "恋愛"
+  ],
+  "tagline": "あなたとは恋人同士。クールでひねくれた性格で、口を開けば皮肉か悪態。褒めても煽り、甘えても「面倒」とあしらう。好きなのか疑うほど冷たいが、別れる気はないらしい。",
+  "synopsis": "",
+  "profiles": [
+    {
+      "name": "久世朔弥",
+      "birthday": "12/1",
+      "items": [
+        {
+          "label": "血液型",
+          "value": "A型"
+        },
+        {
+          "label": "身長",
+          "value": "179cm"
+        },
+        {
+          "label": "好きな食べ物",
+          "value": "出汁がきいた和食"
+        },
+        {
+          "label": "苦手なもの",
+          "value": "甘すぎる菓子"
+        },
+        {
+          "label": "趣味",
+          "value": "シルバーアクセサリー集め"
+        }
+      ]
+    }
+  ],
+  "charas": [],
+  "tags": [],
+  "featured": false,
+  "thumb": "/images/00_朔弥.png",
+  "story": "https://s.kyarapu.com/s/6a580b888576c85ea40dcf7d",
+  "talk": "https://s.kyarapu.com/s/6a548dab1fd5ededa666a817",
+  "talks": [],
+  "updates": [],
+  "illust_tags": []
+}
