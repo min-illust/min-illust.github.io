@@ -249,6 +249,11 @@
   .recs-grid a{text-decoration:none;color:var(--ink);min-width:0}
   .recs-grid img{width:100%;aspect-ratio:1;object-fit:cover;display:block;border:2px solid var(--ink);background:var(--paper-2)}
   .recs-grid p{font-size:11px;font-weight:900;margin-top:4px;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  /* 7日以内の更新のお知らせ（タイトルの下） */
+  .news{margin-top:12px;background:var(--yellow);color:var(--ink);border:2px solid var(--ink);box-shadow:3px 3px 0 var(--red);padding:6px 10px}
+  .news h4{font-family:"Anton",sans-serif;font-size:13px;letter-spacing:.1em}
+  .news li{list-style:none;font-size:13px;font-weight:700;line-height:1.5;display:flex;gap:8px}
+  .news li span{font-family:"Space Mono",monospace;font-size:11px;font-weight:400;flex:none;padding-top:1px}
   .sh-date{font-family:"Space Mono",monospace;font-size:11px;color:#6b655a;margin-top:10px}
   .btns{display:flex;gap:8px;margin-top:14px}
   .btn{
@@ -633,6 +638,15 @@ clr.addEventListener("click",e=>{e.preventDefault();qEl.value="";state.q="";clr.
 /* ================= 詳細シート ================= */
 const sheet=document.getElementById("sheet"), scrim=document.getElementById("scrim");
 let openId=null, galAll=false;
+// ===== 7日以内の更新のお知らせ（更新履歴＋イラストの追加）。7日過ぎたら消えて、UPDATE LOGに残る =====
+function newsHTML(c){
+  const rows=(c.updates||[]).filter(u=>daysAgo(u.date)<=BADGE_DAYS).map(u=>({date:u.date,text:u.text}));
+  const added=(c.illusts||[]).filter(i=>i.date&&i.date>c.published&&daysAgo(i.date)<=BADGE_DAYS);
+  if(added.length){const d=added.map(i=>i.date).sort().pop();rows.push({date:d,text:`イラスト追加（${added.length}枚）`})}
+  if(!rows.length) return "";
+  rows.sort((a,b)=>b.date.localeCompare(a.date));
+  return `<div class="news"><h4>NEWS</h4><ul style="margin:2px 0 0;padding:0">${rows.slice(0,4).map(r=>`<li><span>${esc(md(r.date))}</span>${esc(r.text)}</li>`).join("")}</ul></div>`;
+}
 // ===== キャラプロフィール（誕生日の当日は🎂） =====
 const JST=new Date(Date.now()+9*3600e3), TM=JST.getUTCMonth()+1, TD=JST.getUTCDate();
 const isBday=pf=>pf.bm===TM&&pf.bd===TD;
@@ -683,6 +697,7 @@ function detailHTML(c,all,solo){
         <div class="sh-genres">${(c.genres||[]).map(g=>`<span class="sg">${esc(g)}</span>`).join("")}</div>
       </div>
     </div>
+    ${newsHTML(c)}
     ${c.synopsis?`<div class="syn"><h4>あらすじ</h4><p>${esc(c.synopsis)}</p></div>`:longTl(c.tagline)?`<p class="sh-tl fold">${esc(c.tagline)}</p><button class="tl-more" data-tl="1">続きを読む ▼</button>`:`<p class="sh-tl">${esc(c.tagline)}</p>`}
     ${profilesHTML(c)}
     <div class="tags">${(c.tags||[]).map(t=>`<button class="tag" data-tag="${esc(t)}">#${esc(t)}</button>`).join("")}</div>
