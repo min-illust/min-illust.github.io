@@ -516,6 +516,8 @@ st.addEventListener("click",e=>{if(e.target===st)lbClose()});
 })();
 
 /* ================= ピックアップ ================= */
+// その作品のいちばん新しいイラスト（なければキャラの顔）
+function newestIll(c){const i=[...(c.illusts||[])].sort((a,b)=>String(b.date).localeCompare(String(a.date)))[0];return i?i.thumb:""}
 (function renderPickup(){
   // 新キャラ公開・更新履歴・イラストの追加を、新しい順に（同じ作品は1つにまとめる）
   const items=characters.map(c=>({c,m:marks(c),date:[c.published,lastUpdate(c)].filter(Boolean).sort().pop()}))
@@ -524,7 +526,7 @@ st.addEventListener("click",e=>{if(e.target===st)lbClose()});
   document.getElementById("pickup").innerHTML=items.map(e=>`
     <button class="pk" data-id="${esc(e.c.id)}">
       ${e.m.map(k=>`<span class="k ${k}">${k==="new"?"NEW":"UP"}</span>`).join("")}
-      <img src="${face(e.c,idx[e.c.id])}" alt="">
+      <img src="${esc(newestIll(e.c)||face(e.c,idx[e.c.id]))}" alt="">
       <p class="n">${esc(e.c.title)}</p>
       <p class="d">${md(e.date)}</p>
     </button>`).join("");
