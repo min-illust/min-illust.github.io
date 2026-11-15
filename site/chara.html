@@ -254,6 +254,10 @@
   .news h4{font-family:"Anton",sans-serif;font-size:13px;letter-spacing:.1em}
   .news li{list-style:none;font-size:13px;font-weight:700;line-height:1.5;display:flex;gap:8px}
   .news li span{font-family:"Space Mono",monospace;font-size:11px;font-weight:400;flex:none;padding-top:1px}
+  /* お知らせ・更新履歴が増えたら畳む */
+  .foldbox:not(.open) .fold-more{display:none!important}
+  .foldbtn{margin-top:4px;font-size:11px;font-weight:900;color:var(--red);padding:0;background:none;border:0;cursor:pointer}
+  .news .foldbtn{color:var(--ink)}
   .sh-date{font-family:"Space Mono",monospace;font-size:11px;color:#6b655a;margin-top:10px}
   .btns{display:flex;gap:8px;margin-top:14px}
   .btn{
@@ -638,6 +642,14 @@ clr.addEventListener("click",e=>{e.preventDefault();qEl.value="";state.q="";clr.
 /* ================= 詳細シート ================= */
 const sheet=document.getElementById("sheet"), scrim=document.getElementById("scrim");
 let openId=null, galAll=false;
+// 増えたら畳む：最初の何件かだけ見せて、残りは「もっと見る」
+const NEWS_SHOW=2, LOG_SHOW=3;
+const foldBtn=(n,show)=>n>show?`<button class="foldbtn" data-fold="${n-show}">もっと見る（あと${n-show}件）▼</button>`:"";
+document.addEventListener("click",e=>{
+  const b=e.target.closest("[data-fold]"); if(!b) return;
+  const open=b.closest(".foldbox").classList.toggle("open");
+  b.textContent=open?"閉じる ▲":`もっと見る（あと${b.dataset.fold}件）▼`;
+});
 // ===== 7日以内の更新のお知らせ（更新履歴＋イラストの追加）。7日過ぎたら消えて、UPDATE LOGに残る =====
 function newsHTML(c){
   const rows=(c.updates||[]).filter(u=>daysAgo(u.date)<=BADGE_DAYS).map(u=>({date:u.date,text:u.text}));
@@ -645,7 +657,7 @@ function newsHTML(c){
   if(added.length){const d=added.map(i=>i.date).sort().pop();rows.push({date:d,text:`イラスト追加（${added.length}枚）`})}
   if(!rows.length) return "";
   rows.sort((a,b)=>b.date.localeCompare(a.date));
-  return `<div class="news"><h4>NEWS</h4><ul style="margin:2px 0 0;padding:0">${rows.slice(0,4).map(r=>`<li><span>${esc(md(r.date))}</span>${esc(r.text)}</li>`).join("")}</ul></div>`;
+  return `<div class="news foldbox"><h4>NEWS</h4><ul style="margin:2px 0 0;padding:0">${rows.map((r,i)=>`<li${i>=NEWS_SHOW?' class="fold-more"':""}><span>${esc(md(r.date))}</span>${esc(r.text)}</li>`).join("")}</ul>${foldBtn(rows.length,NEWS_SHOW)}</div>`;
 }
 // ===== キャラプロフィール（誕生日の当日は🎂） =====
 const JST=new Date(Date.now()+9*3600e3), TM=JST.getUTCMonth()+1, TD=JST.getUTCDate();
@@ -708,7 +720,7 @@ function detailHTML(c,all,solo){
     </div>
     ${named?`<div class="btns talks">${talks.map(t=>`<a class="btn talk" href="${esc(t.url)}" target="_blank" rel="noopener">TALK<small>${esc(t.name||"トーク")}</small></a>`).join("")}</div>`:""}
     ${galHTML}
-    ${hist.length?`<div class="hist"><h4>UPDATE LOG</h4><ul>${hist.map(u=>`<li><span>${dot(u.date)}</span>${esc(u.text)}</li>`).join("")}</ul></div>`:""}
+    ${hist.length?`<div class="hist foldbox"><h4>UPDATE LOG</h4><ul>${hist.map((u,i)=>`<li${i>=LOG_SHOW?' class="fold-more"':""}><span>${dot(u.date)}</span>${esc(u.text)}</li>`).join("")}</ul>${foldBtn(hist.length,LOG_SHOW)}</div>`:""}
     <button class="copy" data-share="1">この作品をシェア</button>
     ${solo?recsHTML(c)+`<a class="more-works" href="${CHARA_TOP}">ほかの作品を見る →<small>Min.のキャラクター一覧</small></a>`:""}`;
 }
