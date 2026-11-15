@@ -66,6 +66,13 @@
     background:var(--yellow);color:var(--ink);padding:8px 8px 10px;position:relative;
     box-shadow:4px 4px 0 var(--red);
   }
+  /* NEW & UPDATE は小さめに（ほかのキャラまでスクロールしやすく） */
+  #pickup{gap:10px;padding:12px 16px 12px}
+  #pickup .pk{flex:0 0 84px;width:84px;min-width:0;padding:4px 4px 5px;box-shadow:3px 3px 0 var(--red)}
+  #pickup .pk .n{font-size:11px;margin-top:4px}
+  #pickup .pk .d{font-size:9px;margin-top:1px}
+  #pickup .pk .k{font-size:10px;padding:0 5px;top:-7px}
+  #pickup .pk .k+.k{left:auto;right:-5px;background:var(--ink);color:var(--yellow)}
   .pk:nth-child(odd){transform:rotate(-1.2deg)}
   .pk:nth-child(even){transform:rotate(1deg)}
   .pk img{width:100%;aspect-ratio:1;object-fit:cover;border:2px solid var(--ink);display:block;background:var(--paper-2)}
@@ -400,7 +407,7 @@ try {
 const BOOT = window.__CHARA || {characters:[]};
 const TODAY = new Date();
 const BADGE_DAYS = 14;                  // NEW / UPDATE を出す日数
-const PICKUP_MAX = 8;                   // 上部ピックアップの最大数
+const PICKUP_MAX = 12;                   // 上部ピックアップの最大数
 const GALLERY_PREVIEW = 6;              // 詳細画面に最初に並べるイラスト枚数
 
 const CATEGORIES = BOOT.categories || ["1:1ロールプレイ","シミュレーション"];
@@ -510,21 +517,15 @@ st.addEventListener("click",e=>{if(e.target===st)lbClose()});
 
 /* ================= ピックアップ ================= */
 (function renderPickup(){
-  const ev=[];
-  characters.forEach(c=>{
-    if(daysAgo(c.published)<=BADGE_DAYS) ev.push({c,date:c.published,text:"新キャラ公開",k:"new"});
-    (c.updates||[]).forEach(u=>{ if(daysAgo(u.date)<=BADGE_DAYS) ev.push({c,date:u.date,text:u.text,k:"up"}) });
-  });
-  ev.sort((a,b)=>b.date.localeCompare(a.date));
-  const seen=new Set(), items=[];
-  for(const e of ev){ if(seen.has(e.c.id)) continue; seen.add(e.c.id); items.push(e); if(items.length>=PICKUP_MAX) break; }
+  // 新キャラ公開・更新履歴・イラストの追加を、新しい順に（同じ作品は1つにまとめる）
+  const items=characters.map(c=>({c,m:marks(c),date:[c.published,lastUpdate(c)].filter(Boolean).sort().pop()}))
+    .filter(x=>x.m.length).sort((a,b)=>b.date.localeCompare(a.date)).slice(0,PICKUP_MAX);
   if(!items.length){document.getElementById("pickup").remove();document.getElementById("pickupLabel").remove();return}
   document.getElementById("pickup").innerHTML=items.map(e=>`
     <button class="pk" data-id="${esc(e.c.id)}">
-      <span class="k ${e.k}">${e.k==="new"?"NEW":"UPDATE"}</span>
+      ${e.m.map(k=>`<span class="k ${k}">${k==="new"?"NEW":"UP"}</span>`).join("")}
       <img src="${face(e.c,idx[e.c.id])}" alt="">
       <p class="n">${esc(e.c.title)}</p>
-      <p class="w">${esc(e.text)}</p>
       <p class="d">${md(e.date)}</p>
     </button>`).join("");
 })();
