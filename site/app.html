@@ -610,5 +610,54 @@ img{-webkit-user-drag:none;user-select:none;-webkit-user-select:none;-webkit-tou
   };
 })();
 </script>
+<script>window.__HS_SEL=".rstrip,.strip";</script>
+<!-- 横に並んだ段を、Macのマウスでも動かせるように（ドラッグ・ホイール・左右ボタン） -->
+<style>
+.hs-wrap{position:relative}
+.hs-btn{display:none;position:absolute;top:50%;z-index:5;width:34px;height:34px;margin-top:-17px;border-radius:50%;border:2px solid #141312;background:#f3efe4;color:#141312;font:700 18px/1 system-ui,sans-serif;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.35)}
+.hs-btn.l{left:2px}.hs-btn.r{right:2px}
+.hs-btn[disabled]{opacity:0;pointer-events:none}
+@media (hover:hover) and (pointer:fine){.hs-btn{display:block}}
+.hs-drag{cursor:grab}
+.hs-drag.hs-active{cursor:grabbing;scroll-snap-type:none!important;user-select:none}
+</style>
+<script>
+(function(){
+  function setup(el){
+    if(!el||el.dataset.hs) return; el.dataset.hs="1";
+    // 左右ボタン
+    const wrap=document.createElement("div"); wrap.className="hs-wrap";
+    el.parentNode.insertBefore(wrap,el); wrap.appendChild(el);
+    const mk=(c,t,dir)=>{const b=document.createElement("button");b.type="button";b.className="hs-btn "+c;b.textContent=t;b.setAttribute("aria-label",dir<0?"前へ":"次へ");
+      b.onclick=()=>el.scrollBy({left:dir*Math.max(160,el.clientWidth*.8),behavior:"smooth"});wrap.appendChild(b);return b};
+    const L=mk("l","‹",-1), R=mk("r","›",1);
+    const sync=()=>{L.disabled=el.scrollLeft<=4;R.disabled=el.scrollLeft+el.clientWidth>=el.scrollWidth-4};
+    el.addEventListener("scroll",sync,{passive:true}); window.addEventListener("resize",sync); setTimeout(sync,50);
+    // マウスのホイール（縦）で横に動かす
+    el.addEventListener("wheel",e=>{
+      if(Math.abs(e.deltaY)<=Math.abs(e.deltaX)) return;
+      const max=el.scrollWidth-el.clientWidth; if(max<=0) return;
+      const atStart=el.scrollLeft<=0&&e.deltaY<0, atEnd=el.scrollLeft>=max-1&&e.deltaY>0;
+      if(atStart||atEnd) return; // 端まで来たら普通にページを縦にスクロール
+      e.preventDefault(); el.scrollLeft+=e.deltaY;
+    },{passive:false});
+    // マウスでつかんで引っぱる
+    el.classList.add("hs-drag");
+    let down=null, moved=false;
+    el.addEventListener("mousedown",e=>{ if(e.button!==0) return; down={x:e.clientX,left:el.scrollLeft}; moved=false; });
+    window.addEventListener("mousemove",e=>{ if(!down) return; const dx=e.clientX-down.x;
+      if(!moved&&Math.abs(dx)>5){moved=true;el.classList.add("hs-active")}
+      if(moved){el.scrollLeft=down.left-dx;e.preventDefault()} });
+    window.addEventListener("mouseup",()=>{ if(!down) return; down=null; if(moved){ setTimeout(()=>el.classList.remove("hs-active"),0); } });
+    // 引っぱったあとのクリックは無視（カードが開かないように）
+    el.addEventListener("click",e=>{ if(moved){e.preventDefault();e.stopPropagation();moved=false} },true);
+    el.addEventListener("dragstart",e=>e.preventDefault());
+  }
+  function scan(){ document.querySelectorAll(window.__HS_SEL||"").forEach(setup); }
+  window.__hsScan=scan;
+  new MutationObserver(scan).observe(document.body,{childList:true,subtree:true});
+  scan();
+})();
+</script>
 </body>
 </html>
