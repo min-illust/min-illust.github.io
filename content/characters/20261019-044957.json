@@ -20,6 +20,12 @@
   "thumb": "/images/01_平常時.png",
   "story": "https://s.kyarapu.com/s/6a4b817114dbc97a91695c53",
   "talk": "https://s.kyarapu.com/s/6a48f2c6aae9046978050df5",
-  "updates": [],
+  "talks": [],
+  "updates": [
+    {
+      "date": "2026-11-19",
+      "text": "ストーリー版 サムネイル変更&画像追加・変更"
+    }
+  ],
   "illust_tags": []
 }
