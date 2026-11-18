@@ -91,6 +91,11 @@
   "story": "https://s.kyarapu.com/s/6acc5a681337c2616521ecfe",
   "talk": "https://s.kyarapu.com/s/6afd645d1dd381218cd2ce06",
   "talks": [],
-  "updates": [],
+  "updates": [
+    {
+      "date": "2026-11-18",
+      "text": "トーク版公開"
+    }
+  ],
   "illust_tags": []
 }
