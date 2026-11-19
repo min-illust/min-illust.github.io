@@ -1,5 +1,5 @@
 {
-  "title": "幼なじみの望くんは片思い中",
+  "title": "幼なじみの望くんは片想い中",
   "published": "2026-11-02",
   "category": "1:1ロールプレイ",
   "genres": [
@@ -47,6 +47,11 @@
   "story": "https://s.kyarapu.com/s/6ae83299aa02dd72cf854706",
   "talk": "https://s.kyarapu.com/s/6a44771ef560bbdeeff234b5",
   "talks": [],
-  "updates": [],
+  "updates": [
+    {
+      "date": "2026-11-19",
+      "text": "ストーリー版｜サムネ変更"
+    }
+  ],
   "illust_tags": []
 }
