@@ -1,16 +1,24 @@
 {
-  "talk": "https://s.kyarapu.com/s/6ac5f1a132569d4adfdd761c",
+  "title": "俺様バンドマンは可愛がられたい",
   "published": "2026-10-05",
-  "tagline": "吉瀬 岳人（きちせ がくと）｜26歳\nインディーズロックバンド「Vanilla」のボーカル兼作詞担当。\nライブでは客を煽り、普段も強気で何でも自分で決めたがる。\nあなたとは、付き合い始めたばかりの恋人。\n人に指図されるのは嫌いなくせに、あなたの言うことなら妙に素直。\n求められることが嬉しくて、応えたことを褒められると露骨に機嫌がよくなる。\n「ばーか。……早く褒めろ。」",
+  "category": "1:1ロールプレイ",
   "genres": [
     "恋愛"
   ],
-  "story": "https://s.kyarapu.com/s/6ac2332b5a3d6c36cce40500",
-  "thumb": "https://min-illust.github.io/images/img_2185.png",
-  "title": "俺様バンドマンは可愛がられたい",
-  "tags": [],
-  "category": "1:1ロールプレイ",
+  "tagline": "吉瀬 岳人（きちせ がくと）｜26歳\nインディーズロックバンド「Vanilla」のボーカル兼作詞担当。\nライブでは客を煽り、普段も強気で何でも自分で決めたがる。\nあなたとは、付き合い始めたばかりの恋人。\n人に指図されるのは嫌いなくせに、あなたの言うことなら妙に素直。\n求められることが嬉しくて、応えたことを褒められると露骨に機嫌がよくなる。\n「ばーか。……早く褒めろ。」",
+  "synopsis": "",
+  "profiles": [],
   "charas": [
     "吉瀬岳人"
-  ]
+  ],
+  "tags": [],
+  "featured": false,
+  "visibility": "サイト限定",
+  "remake": true,
+  "thumb": "https://min-illust.github.io/images/img_2185.png",
+  "story": "https://s.kyarapu.com/s/6ac2332b5a3d6c36cce40500",
+  "talk": "https://s.kyarapu.com/s/6ac5f1a132569d4adfdd761c",
+  "talks": [],
+  "updates": [],
+  "illust_tags": []
 }
