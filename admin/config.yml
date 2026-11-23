@@ -183,6 +183,14 @@ collections:
       - { name: charas, label: 登場キャラ名（複数OK）, label_singular: キャラ名, widget: list, required: false, hint: "シミュなら全員分。作品名とキャラ名は自動でタグになります" }
       - { name: tags, label: タグ（幼馴染・同居など・カンマ区切り・任意）, widget: list, required: false, hint: "作品名とキャラ名は自動でタグになるので、ここには入れなくてOK" }
       - { name: featured, label: おすすめに表示（一覧の上に固定で出ます）, widget: boolean, default: false, required: false }
+      - name: visibility
+        label: 公開の範囲
+        widget: select
+        options: [通常, サイト限定, 非表示]
+        default: 通常
+        required: false
+        hint: "サイト限定：キャラぷではリンク公開の作品。一覧のいちばん上「ここでしか遊べない」に並びます／非表示：一覧・検索・CREATIVE LOGのどこにも出さず、作品ページのURLを知っている人だけ"
+      - { name: remake, label: リメイク予定（「リメイク予定」の印が付きます）, widget: boolean, default: false, required: false }
       - { name: thumb, label: サムネ（顔のイラスト・正方形に自動で切り抜き）, widget: image, choose_url: false, required: false }
       - name: story
         label: ストーリーのURL（キャラぷ・あるときだけ）

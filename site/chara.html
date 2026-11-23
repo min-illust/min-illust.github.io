@@ -164,6 +164,31 @@
   .mini.up{background:var(--yellow);color:var(--ink);transform:rotate(-4deg)}
   .mini.new+.mini.up{top:12px}            /* NEWとUPが両方つくときは縦に並べる */
   .row .mini.new+.mini.up{top:11px}
+  /* サイト限定・リメイク予定（左上） */
+  .mini.lim,.mini.rmk{left:-4px;right:auto;font-family:"Zen Kaku Gothic New",sans-serif;font-weight:900;font-size:10px;letter-spacing:0}
+  .mini.lim{background:var(--ink);color:var(--yellow);border:1.5px solid var(--yellow);transform:rotate(-4deg)}
+  .mini.rmk{top:13px;background:var(--paper);color:var(--ink);border:1.5px solid var(--ink)}
+  .mini.lim+.mini.rmk{top:14px}
+  .bd.lim{background:var(--ink);color:var(--yellow);font-family:"Zen Kaku Gothic New",sans-serif;font-weight:900;font-size:12px}
+  .bd.rmk{background:var(--paper);border:2px solid var(--ink);font-family:"Zen Kaku Gothic New",sans-serif;font-weight:900;font-size:12px}
+  /* ここでしか遊べない（一覧のいちばん上） */
+  #onlyLabel small{color:var(--yellow)}
+  .only-lead{font-size:11px;color:var(--muted);margin:-4px 0 2px}
+  #only{gap:12px;padding:14px 16px 12px}
+  #only .pk{flex:0 0 116px;width:116px;min-width:0;padding:5px 5px 7px;background:var(--paper);box-shadow:3px 3px 0 var(--red)}
+  #only .pk .n{font-size:12px;margin-top:5px}
+  #only .pk .w{font-size:10px}
+  #only .pk .k{font-size:10px;padding:0 5px;top:-8px}
+  #only .pk .k{background:var(--ink);color:var(--yellow)}
+  #only .pk .k.rmk{left:auto;right:-5px;background:var(--paper);color:var(--ink);border:1.5px solid var(--ink)}
+  /* リクエスト */
+  .req{margin-top:16px;border:2px dashed var(--ink);padding:10px}
+  .req h4{font-family:"Anton",sans-serif;font-size:14px;letter-spacing:.1em}
+  .req p{font-size:11px;color:#6b655a;margin-top:2px}
+  .req .rb{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+  .req button{flex:1 1 auto;font-size:12px;font-weight:900;border:2px solid var(--ink);background:var(--paper);color:var(--ink);padding:6px 8px}
+  .req button.sent{background:var(--ink);color:var(--paper);cursor:default}
+  .req .thx{font-size:12px;font-weight:900;color:var(--red);margin-top:6px;min-height:1em}
 
   /* ===== LIST VIEW ===== */
   .list{display:flex;flex-direction:column;gap:12px;margin-top:16px}
@@ -200,7 +225,8 @@
   .sh-top{display:grid;grid-template-columns:120px 1fr;gap:14px;align-items:end;padding-right:34px}
   .sh-top img{width:120px;height:120px;object-fit:cover;border:3px solid var(--ink);display:block;transform:rotate(-1.5deg);box-shadow:4px 4px 0 var(--red)}
   .sh-badges{display:flex;gap:4px;margin-bottom:6px}
-  .bd{font-family:"Anton",sans-serif;font-size:13px;letter-spacing:.06em;padding:1px 7px}
+  .bd{font-family:"Anton",sans-serif;font-size:13px;letter-spacing:.06em;padding:1px 7px;white-space:nowrap}
+  .sh-badges{flex-wrap:wrap;row-gap:4px}
   .bd.new{background:var(--red);color:var(--paper)}
   .bd.up{background:var(--yellow);border:2px solid var(--ink)}
   .sh-title{font-weight:900;font-size:21px;line-height:1.25}
@@ -303,7 +329,7 @@
   /* イラスト一覧（タグ・キャラ名から） */
   .illv{display:none;background:var(--paper);color:var(--ink);padding:16px 16px 22px;border-top:4px solid var(--red);box-shadow:5px 5px 0 var(--red)}
   body.ill .illv{display:block}
-  body.ill #recLabel,body.ill #rec,body.ill #pickupLabel,body.ill #pickup,body.ill #allTop,body.ill #filters,body.ill #results{display:none}
+  body.ill #onlyLabel,body.ill #onlyLead,body.ill #only,body.ill #recLabel,body.ill #rec,body.ill #pickupLabel,body.ill #pickup,body.ill #allTop,body.ill #filters,body.ill #results{display:none}
   .illv .back{font-size:12px;font-weight:900;color:var(--red);text-decoration:none}
   .illv h2{font-weight:900;font-size:22px;line-height:1.3;margin-top:8px;overflow-wrap:anywhere}
   .illv .sub{font-family:"Space Mono",monospace;font-size:11px;color:#6b655a;margin-top:2px}
@@ -317,7 +343,7 @@
   /* ===== 作品ページ（/chara/w/作品ID/）===== */
   .solo{display:none}
   body.single .solo{display:block;background:var(--paper);color:var(--ink);padding:16px 16px 22px;border-top:4px solid var(--red);box-shadow:5px 5px 0 var(--red)}
-  body.single #recLabel,body.single #rec,body.single #pickupLabel,body.single #pickup,body.single #allTop,body.single #filters,body.single #results{display:none}
+  body.single #onlyLabel,body.single #onlyLead,body.single #only,body.single #recLabel,body.single #rec,body.single #pickupLabel,body.single #pickup,body.single #allTop,body.single #filters,body.single #results{display:none}
   body.single .sh-top{padding-right:0}
   .copy{display:block;width:100%;margin-top:16px;padding:8px 0;border:2px dashed var(--ink);font-weight:900;font-size:12px}
   .copy.done{background:var(--ink);color:var(--paper);border-style:solid}
@@ -346,6 +372,10 @@
   <section class="solo" id="solo"></section>
   <section class="illv" id="illv"></section>
 
+  <h2 class="label" id="onlyLabel">ONLY HERE <small>ここでしか遊べない</small></h2>
+  <p class="only-lead" id="onlyLead">キャラぷでは一覧に出ていない、このページからだけ遊べる作品です</p>
+  <div class="pickup" id="only"></div>
+
   <h2 class="label" id="recLabel">RECOMMEND <small>おすすめ</small></h2>
   <div class="pickup recs-top" id="rec"></div>
 
@@ -366,6 +396,7 @@
     <div class="has" id="has">
       <button data-h="story">STORY<small>ストーリーあり</small></button>
       <button data-h="talk">TALK<small>トークあり</small></button>
+      <button data-h="only" id="hasOnly">ONLY<small>サイト限定</small></button>
     </div>
     <div class="tagon" id="tagOn"></div>
     <div class="meta">
@@ -410,7 +441,7 @@
 try {
   const B0 = window.__CHARA || {};
   const r = await fetch(`${B0.base || ""}/data/chara.json`, { cache: "no-cache" });
-  if (r.ok) { const j = await r.json(); if (j && Array.isArray(j.characters)) window.__CHARA = { ...B0, ...j, single: B0.single }; }
+  if (r.ok) { const j = await r.json(); if (j && Array.isArray(j.characters)) { const own = B0.single && !j.characters.some(c => c.id === B0.single) && (B0.characters || []).find(c => c.id === B0.single); window.__CHARA = { ...B0, ...j, characters: own ? [...j.characters, own] : j.characters, single: B0.single }; } }
 } catch (e) {}
 /* ================= 設定 ================= */
 const BOOT = window.__CHARA || {characters:[]};
@@ -512,6 +543,18 @@ st.addEventListener("touchend",e=>{if(tx==null)return;const dx=e.changedTouches[
 st.addEventListener("click",e=>{if(e.target===st)lbClose()});
 
 /* ================= おすすめ（管理画面でチェックした作品） ================= */
+const isOnly=c=>c.visibility==="サイト限定";
+(function renderOnly(){
+  const items=characters.filter(c=>isOnly(c)).sort((a,b)=>String(b.published).localeCompare(String(a.published)));
+  if(!items.length){["only","onlyLabel","onlyLead","hasOnly"].forEach(id=>{const e=document.getElementById(id);if(e)e.remove()});return}
+  document.getElementById("only").innerHTML=items.map(c=>`
+    <button class="pk" data-id="${esc(c.id)}">
+      <span class="k">限定</span>${c.remake?`<span class="k rmk">リメイク予定</span>`:""}
+      <img src="${face(c,idx[c.id])}" alt="">
+      <p class="n">${esc(c.title)}</p>
+      <p class="w">${esc((c.charas||[]).join("・")||c.category)}</p>
+    </button>`).join("");
+})();
 (function renderRec(){
   const items=characters.filter(c=>c.featured);
   if(!items.length){document.getElementById("rec").remove();document.getElementById("recLabel").remove();return}
@@ -561,6 +604,7 @@ function filtered(){
     if(state.tag&&!(c.tags||[]).some(t=>norm(t)===norm(state.tag))) return false;
     if(state.has.has("story")&&!c.story) return false;
     if(state.has.has("talk")&&!c.talk) return false;
+    if(state.has.has("only")&&!isOnly(c)) return false;
     for(const g of state.genres){ if(!(c.genres||[]).includes(g)) return false; }
     if(q.length){
       // イラストに付けたタグ・キャラ名・一言も検索の対象に
@@ -584,7 +628,7 @@ function render(){
   if(state.tag) document.getElementById("tagOff").onclick=()=>setTag("");
   document.getElementById("count").textContent=`${arr.length} / ${characters.length} CHARA`;
   if(!arr.length){box.innerHTML=`<p class="empty"><b>NO HIT</b>条件に合うキャラがいません</p>`;return}
-  const badge=c=>{const s=status(c);return (hasBday(c)?`<span class="cake" title="今日が誕生日">🎂</span>`:"")+marks(c).map(m=>`<span class="mini ${m}">${m==="new"?"NEW":"UP"}</span>`).join("")};
+  const badge=c=>{const s=status(c);return (isOnly(c)?`<span class="mini lim">限定</span>`:"")+(c.remake?`<span class="mini rmk">リメイク予定</span>`:"")+(hasBday(c)?`<span class="cake" title="今日が誕生日">🎂</span>`:"")+marks(c).map(m=>`<span class="mini ${m}">${m==="new"?"NEW":"UP"}</span>`).join("")};
   if(state.view==="grid"){
     box.innerHTML=`<div class="grid">${arr.map(c=>`
       <button class="cell" data-id="${esc(c.id)}">
@@ -703,7 +747,7 @@ function detailHTML(c,all,solo){
     <div class="sh-top">
       <img src="${face(c,idx[c.id])}" alt="${esc(c.title)}">
       <div>
-        <div class="sh-badges">${marks(c).map(m=>m==="new"?`<span class="bd new">NEW</span>`:`<span class="bd up">UPDATE</span>`).join("")}</div>
+        <div class="sh-badges">${isOnly(c)?`<span class="bd lim">サイト限定</span>`:""}${c.remake?`<span class="bd rmk">リメイク予定</span>`:""}${marks(c).map(m=>m==="new"?`<span class="bd new">NEW</span>`:`<span class="bd up">UPDATE</span>`).join("")}</div>
         ${solo?`<h2 class="sh-title">${esc(c.title)}</h2>`:`<h3 class="sh-title">${esc(c.title)}</h3>`}
         <p class="sh-cat">${esc(c.category)}</p>
         <div class="sh-genres">${(c.genres||[]).map(g=>`<span class="sg">${esc(g)}</span>`).join("")}</div>
@@ -719,11 +763,30 @@ function detailHTML(c,all,solo){
       ${!named&&talks[0]?`<a class="btn talk" href="${esc(talks[0].url)}" target="_blank" rel="noopener">TALK<small>トーク</small></a>`:""}
     </div>
     ${named?`<div class="btns talks">${talks.map(t=>`<a class="btn talk" href="${esc(t.url)}" target="_blank" rel="noopener">TALK<small>${esc(t.name||"トーク")}</small></a>`).join("")}</div>`:""}
+    ${reqHTML(c,!!story,talks.length>0)}
     ${galHTML}
     ${hist.length?`<div class="hist foldbox"><h4>UPDATE LOG</h4><ul>${hist.map((u,i)=>`<li${i>=LOG_SHOW?' class="fold-more"':""}><span>${dot(u.date)}</span>${esc(u.text)}</li>`).join("")}</ul>${foldBtn(hist.length,LOG_SHOW)}</div>`:""}
     <button class="copy" data-share="1">この作品をシェア</button>
     ${solo?recsHTML(c)+`<a class="more-works" href="${CHARA_TOP}">ほかの作品を見る →<small>Min.のキャラクター一覧</small></a>`:""}`;
 }
+// ===== リクエスト（押すだけ。アクセス解析に数が記録される。外部には飛ばない） =====
+const REQ={story:"ストーリー版も遊びたい",talk:"トーク版も遊びたい",illust:"イラストがもっと見たい"};
+const reqKey=(c,t)=>`min-req:${c.id}:${t}`;
+const reqSent=(c,t)=>{try{return localStorage.getItem(reqKey(c,t))==="1"}catch(e){return false}};
+function reqHTML(c,hasStory,hasTalk){
+  const types=[...(hasTalk&&!hasStory?["story"]:[]),...(hasStory&&!hasTalk?["talk"]:[]),"illust"];
+  return `<div class="req" data-req-id="${esc(c.id)}"><h4>REQUEST</h4><p>押すだけで、作者に「見たい！」が届きます（作る約束ではなく、今後の参考にさせてもらいます）</p>
+    <div class="rb">${types.map(t=>reqSent(c,t)?`<button class="sent" disabled>✓ ${esc(REQ[t])}</button>`:`<button data-req="${t}">${esc(REQ[t])}</button>`).join("")}</div><p class="thx"></p></div>`;
+}
+document.addEventListener("click",e=>{
+  const b=e.target.closest("[data-req]"); if(!b) return;
+  const box=b.closest("[data-req-id]"); const c=characters.find(x=>x.id===box.dataset.reqId); if(!c) return;
+  const t=b.dataset.req;
+  try{ if(window.goatcounter&&goatcounter.count) goatcounter.count({path:`request/${t}/${c.title}`,title:`リクエスト：${REQ[t]}（${c.title}）`,event:true}); }catch(err){}
+  try{ localStorage.setItem(reqKey(c,t),"1") }catch(err){}
+  b.removeAttribute("data-req"); b.disabled=true; b.classList.add("sent"); b.textContent="✓ "+REQ[t];
+  box.querySelector(".thx").textContent="リクエストを受け付けました！ありがとうございます";
+});
 // 同じタグの作品（共通タグが多い順→新しい順・最大6件）
 function recsHTML(c){
   const mine=new Set((c.tags||[]).map(norm));

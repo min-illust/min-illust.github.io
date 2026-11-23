@@ -120,6 +120,7 @@ for (const f of charaFiles) {
   const title = String(raw.title).trim();
   works.push({
     id: f.replace(/\.json$/, "").replace(/[^\w-]/g, "-"), f, raw, title,
+    hidden: String(raw.visibility || "").trim() === "非表示",
     charas: uniqTags(list(raw.charas)),
     keys: [raw.story, raw.talk, ...(Array.isArray(raw.talks) ? raw.talks.map((t) => t && t.url) : [])].filter((u) => u && isKyarapu(u)).map(urlKey),
     names: [title, ...list(raw.illust_tags)].map(normName).filter(Boolean),
@@ -235,6 +236,20 @@ const categories = catNames.map((name) => {
   return { name, sub: catSub[name] || "", description: catDesc[name] || "", count: ps.length, cover: ps.map(coverOf).find(Boolean) || "", music: MUSIC_CATS.includes(name) };
 }).filter((c) => c.count > 0 || catDesc[c.name] !== undefined);
 
+// ---------- 非表示の作品のイラストは CREATIVE LOG に出さない ----------
+{
+  const hiddenIds = new Set(works.filter((w) => w.hidden).map((w) => w.id));
+  for (let i = posts.length - 1; i >= 0; i--) {
+    const p = posts[i];
+    if (p.workId && hiddenIds.has(p.workId)) { posts.splice(i, 1); continue; }
+    if (p.coWorks.some((x) => hiddenIds.has(x.id))) {
+      const hid = p.coWorks.filter((x) => hiddenIds.has(x.id)).map((x) => normName(x.title));
+      p.coWorks = p.coWorks.filter((x) => !hiddenIds.has(x.id));
+      p.tags = p.tags.filter((t) => !hid.includes(normName(t)));
+    }
+  }
+}
+
 // ---------- 書き出し ----------
 await fs.mkdir(path.join(OUT, "data"), { recursive: true });
 
@@ -340,6 +355,8 @@ for (const w of works) {
     charas: w.charas,
     tags: uniqTags([w.title, ...w.charas, ...attr]),
     featured: !!raw.featured,
+    visibility: ["サイト限定", "非表示"].includes(String(raw.visibility || "").trim()) ? String(raw.visibility).trim() : "通常",
+    remake: !!raw.remake,
     published: day(raw.published),
     thumb: await charaThumb(raw.thumb),
     story, talk, talks, updates, illusts,
@@ -368,22 +385,24 @@ characters.sort((a, b) => b.published.localeCompare(a.published) || b.id.localeC
 
   // 最新データ（ページが古く覚えられていても、開くたびにこちらを読む）
   await fs.mkdir(path.join(OUT, "data"), { recursive: true });
-  await fs.writeFile(path.join(OUT, "data/chara.json"), JSON.stringify({ updated: new Date().toISOString(), characters }));
+  const listed = characters.filter((c) => c.visibility !== "非表示");
+  await fs.writeFile(path.join(OUT, "data/chara.json"), JSON.stringify({ updated: new Date().toISOString(), characters: listed }));
 
   // 一覧ページ（/chara/）
   await fs.mkdir(path.join(OUT, "chara"), { recursive: true });
   await fs.writeFile(path.join(OUT, "chara/index.html"),
     tpl.replace("<!--HEAD-->", headOf({ title: ctitle, desc: cdesc, url: `${SITE_URL}/chara/`, og: abs(cog) }))
-      .replace("<!--BOOT-->", bootOf({ characters })));
+      .replace("<!--BOOT-->", bootOf({ characters: listed })));
 
   // 作品ごとのページ（/chara/w/作品ID/・その作品だけを表示。キャラぷの作品ページに貼る用）
   for (const c of characters) {
+    const hidden = c.visibility === "非表示";
     const dir = path.join(OUT, "chara", "w", c.id);
     await fs.mkdir(dir, { recursive: true });
     const desc = (c.tagline || `${c.category}｜${c.genres.join(" / ")}`).replace(/\s+/g, " ").slice(0, 120);
     await fs.writeFile(path.join(dir, "index.html"),
-      tpl.replace("<!--HEAD-->", headOf({ title: `${c.title}｜Min.`, desc, url: `${SITE_URL}/chara/w/${c.id}/`, og: abs(c.thumb || c.illusts[0]?.thumb) }))
-        .replace("<!--BOOT-->", bootOf({ single: c.id, characters })));  // 「同じタグの作品」用に全作品を渡す
+      tpl.replace("<!--HEAD-->", (hidden ? `<meta name="robots" content="noindex,nofollow">\n` : "") + headOf({ title: `${c.title}｜Min.`, desc, url: `${SITE_URL}/chara/w/${c.id}/`, og: abs(c.thumb || c.illusts[0]?.thumb) }))
+        .replace("<!--BOOT-->", bootOf({ single: c.id, characters: hidden ? [...listed, c] : listed })));  // 「同じタグの作品」用に一覧に出る作品を渡す（非表示の作品は自分だけ）
   }
   console.log(`キャラリンク集：${characters.length} 作品（作品ページ ${characters.length} 件）／イラスト紐づけ ${characters.reduce((n, c) => n + c.illusts.length, 0)} 枚`);
 }
