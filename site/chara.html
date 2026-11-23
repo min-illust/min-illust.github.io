@@ -169,6 +169,9 @@
   .mini.lim{background:var(--ink);color:var(--yellow);border:1.5px solid var(--yellow);transform:rotate(-4deg)}
   .mini.rmk{top:13px;background:var(--paper);color:var(--ink);border:1.5px solid var(--ink)}
   .mini.lim+.mini.rmk{top:14px}
+  /* 先行公開 */
+  .mini.lim.early,.bd.lim.early,#only .pk .k.early{background:var(--red);color:var(--paper);border-color:var(--paper)}
+  .early-note{font-size:11px;font-weight:900;color:var(--red);margin-top:3px}
   .bd.lim{background:var(--ink);color:var(--yellow);font-family:"Zen Kaku Gothic New",sans-serif;font-weight:900;font-size:12px}
   .bd.rmk{background:var(--paper);border:2px solid var(--ink);font-family:"Zen Kaku Gothic New",sans-serif;font-weight:900;font-size:12px}
   /* ここでしか遊べない（一覧のいちばん上） */
@@ -177,7 +180,7 @@
   #only{gap:12px;padding:14px 16px 12px}
   #only .pk{flex:0 0 116px;width:116px;min-width:0;padding:5px 5px 7px;background:var(--paper);box-shadow:3px 3px 0 var(--red)}
   #only .pk .n{font-size:12px;margin-top:5px}
-  #only .pk .w{font-size:10px}
+  #only .pk .w{font-size:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   #only .pk .k{font-size:10px;padding:0 5px;top:-8px}
   #only .pk .k{background:var(--ink);color:var(--yellow)}
   #only .pk .k.rmk{left:auto;right:-5px;background:var(--paper);color:var(--ink);border:1.5px solid var(--ink)}
@@ -373,7 +376,7 @@
   <section class="illv" id="illv"></section>
 
   <h2 class="label" id="onlyLabel">ONLY HERE <small>ここでしか遊べない</small></h2>
-  <p class="only-lead" id="onlyLead">キャラぷでは一覧に出ていない、このページからだけ遊べる作品です</p>
+  <p class="only-lead" id="onlyLead">キャラぷでは一覧に出ていない、このページから遊べる作品です（先行公開の作品は、キャラぷより先に遊べます）</p>
   <div class="pickup" id="only"></div>
 
   <h2 class="label" id="recLabel">RECOMMEND <small>おすすめ</small></h2>
@@ -396,7 +399,7 @@
     <div class="has" id="has">
       <button data-h="story">STORY<small>ストーリーあり</small></button>
       <button data-h="talk">TALK<small>トークあり</small></button>
-      <button data-h="only" id="hasOnly">ONLY<small>サイト限定</small></button>
+      <button data-h="only" id="hasOnly">ONLY<small>限定・先行</small></button>
     </div>
     <div class="tagon" id="tagOn"></div>
     <div class="meta">
@@ -543,16 +546,20 @@ st.addEventListener("touchend",e=>{if(tx==null)return;const dx=e.changedTouches[
 st.addEventListener("click",e=>{if(e.target===st)lbClose()});
 
 /* ================= おすすめ（管理画面でチェックした作品） ================= */
-const isOnly=c=>c.visibility==="サイト限定";
+// サイト限定・先行公開：どちらも一覧のいちばん上「ONLY HERE」に並ぶ
+const isOnly=c=>c.visibility==="サイト限定"||c.visibility==="先行公開";
+const isEarly=c=>c.visibility==="先行公開";
+const onlyLabel=c=>isEarly(c)?"先行公開":"限定";
 (function renderOnly(){
-  const items=characters.filter(c=>isOnly(c)).sort((a,b)=>String(b.published).localeCompare(String(a.published)));
+  // 先行公開を先に、そのあとサイト限定。それぞれ新しい順
+  const items=characters.filter(c=>isOnly(c)).sort((a,b)=>(isEarly(b)-isEarly(a))||String(b.published).localeCompare(String(a.published)));
   if(!items.length){["only","onlyLabel","onlyLead","hasOnly"].forEach(id=>{const e=document.getElementById(id);if(e)e.remove()});return}
   document.getElementById("only").innerHTML=items.map(c=>`
     <button class="pk" data-id="${esc(c.id)}">
-      <span class="k">限定</span>${c.remake?`<span class="k rmk">リメイク予定</span>`:""}
+      <span class="k${isEarly(c)?" early":""}">${onlyLabel(c)}</span>${c.remake?`<span class="k rmk">リメイク予定</span>`:""}
       <img src="${face(c,idx[c.id])}" alt="">
       <p class="n">${esc(c.title)}</p>
-      <p class="w">${esc((c.charas||[]).join("・")||c.category)}</p>
+      <p class="w">${isEarly(c)&&c.releasePlan?`${esc(c.releasePlan)} 一般公開予定`:esc((c.charas||[]).join("・")||c.category)}</p>
     </button>`).join("");
 })();
 (function renderRec(){
@@ -628,7 +635,7 @@ function render(){
   if(state.tag) document.getElementById("tagOff").onclick=()=>setTag("");
   document.getElementById("count").textContent=`${arr.length} / ${characters.length} CHARA`;
   if(!arr.length){box.innerHTML=`<p class="empty"><b>NO HIT</b>条件に合うキャラがいません</p>`;return}
-  const badge=c=>{const s=status(c);return (isOnly(c)?`<span class="mini lim">限定</span>`:"")+(c.remake?`<span class="mini rmk">リメイク予定</span>`:"")+(hasBday(c)?`<span class="cake" title="今日が誕生日">🎂</span>`:"")+marks(c).map(m=>`<span class="mini ${m}">${m==="new"?"NEW":"UP"}</span>`).join("")};
+  const badge=c=>{const s=status(c);return (isOnly(c)?`<span class="mini lim${isEarly(c)?" early":""}">${onlyLabel(c)}</span>`:"")+(c.remake?`<span class="mini rmk">リメイク予定</span>`:"")+(hasBday(c)?`<span class="cake" title="今日が誕生日">🎂</span>`:"")+marks(c).map(m=>`<span class="mini ${m}">${m==="new"?"NEW":"UP"}</span>`).join("")};
   if(state.view==="grid"){
     box.innerHTML=`<div class="grid">${arr.map(c=>`
       <button class="cell" data-id="${esc(c.id)}">
@@ -747,9 +754,10 @@ function detailHTML(c,all,solo){
     <div class="sh-top">
       <img src="${face(c,idx[c.id])}" alt="${esc(c.title)}">
       <div>
-        <div class="sh-badges">${isOnly(c)?`<span class="bd lim">サイト限定</span>`:""}${c.remake?`<span class="bd rmk">リメイク予定</span>`:""}${marks(c).map(m=>m==="new"?`<span class="bd new">NEW</span>`:`<span class="bd up">UPDATE</span>`).join("")}</div>
+        <div class="sh-badges">${isOnly(c)?`<span class="bd lim${isEarly(c)?" early":""}">${isEarly(c)?"先行公開":"サイト限定"}</span>`:""}${c.remake?`<span class="bd rmk">リメイク予定</span>`:""}${marks(c).map(m=>m==="new"?`<span class="bd new">NEW</span>`:`<span class="bd up">UPDATE</span>`).join("")}</div>
         ${solo?`<h2 class="sh-title">${esc(c.title)}</h2>`:`<h3 class="sh-title">${esc(c.title)}</h3>`}
         <p class="sh-cat">${esc(c.category)}</p>
+        ${isEarly(c)?`<p class="early-note">このサイトから先に遊べます${c.releasePlan?`（キャラぷでの一般公開は${esc(c.releasePlan)}予定）`:""}</p>`:""}
         <div class="sh-genres">${(c.genres||[]).map(g=>`<span class="sg">${esc(g)}</span>`).join("")}</div>
       </div>
     </div>
