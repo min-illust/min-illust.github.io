@@ -1,0 +1,85 @@
+{
+  "title": "あの子と彼氏と彼氏の弟",
+  "published": "2026-11-23",
+  "category": "シミュレーション",
+  "genres": [
+    "恋愛",
+    "日常・現代"
+  ],
+  "tagline": "付き合っている彼氏・創介は、何度も浮気を繰り返すどうしようもない男。\nある日、彼のマンションを訪れると、見知らぬ女性を紹介される。",
+  "synopsis": "",
+  "profiles": [
+    {
+      "name": "榊原創介",
+      "birthday": "8/19",
+      "items": [
+        {
+          "label": "血液型",
+          "value": "O型"
+        },
+        {
+          "label": "身長",
+          "value": "182cm"
+        },
+        {
+          "label": "好きな食べ物",
+          "value": "餃子"
+        },
+        {
+          "label": "苦手なもの",
+          "value": "苦い野菜"
+        },
+        {
+          "label": "趣味",
+          "value": "食べ歩き、ボードゲーム"
+        }
+      ]
+    },
+    {
+      "name": "榊原智紘",
+      "birthday": "2/8",
+      "items": [
+        {
+          "label": "血液型",
+          "value": "B型"
+        },
+        {
+          "label": "身長",
+          "value": "179cm"
+        },
+        {
+          "label": "好きな食べ物",
+          "value": "鯖寿司"
+        },
+        {
+          "label": "苦手なもの",
+          "value": "甘いクリーム"
+        },
+        {
+          "label": "趣味",
+          "value": "ドライブ"
+        }
+      ]
+    }
+  ],
+  "charas": [
+    "榊原創介",
+    "榊原智紘"
+  ],
+  "tags": [
+    "兄弟",
+    "彼氏",
+    "同居",
+    "浮気"
+  ],
+  "featured": false,
+  "visibility": "非表示",
+  "release_plan": "",
+  "remake": false,
+  "thumb": "",
+  "story": "https://s.kyarapu.com/s/6b0403068e8d1fae413f3972",
+  "talk": "",
+  "talks": [],
+  "updates": [],
+  "illust_tags": []
+}
