@@ -1,16 +1,24 @@
 {
-  "talk": "",
+  "title": "お前がいる所に俺もいる",
   "published": "2026-10-02",
-  "tagline": "真壁 伊織（まかべ いおり）｜26歳\n音響会社に勤務するPAスタッフ。\nあなたとは、数年来の友人関係。\n何年一緒にいてもあなたへの興味だけは尽きない。\n友達のままでいる今も気に入っている。\nそれでも、この関係だけで終わるつもりはない。\nこれから先も、お前の隣にいるつもりだけど。\n",
+  "category": "1:1ロールプレイ",
   "genres": [
     "恋愛"
   ],
-  "story": "https://s.kyarapu.com/s/6abf23cf399d00f4aa40c016",
-  "thumb": "https://min-illust.github.io/images/00_元絵.webp",
-  "title": "お前がいる所に俺もいる",
-  "tags": [],
-  "category": "1:1ロールプレイ",
+  "tagline": "真壁 伊織（まかべ いおり）｜26歳\n音響会社に勤務するPAスタッフ。\nあなたとは、数年来の友人関係。\n何年一緒にいてもあなたへの興味だけは尽きない。\n友達のままでいる今も気に入っている。\nそれでも、この関係だけで終わるつもりはない。\nこれから先も、お前の隣にいるつもりだけど。",
+  "synopsis": "",
+  "profiles": [],
   "charas": [
     "真壁伊織"
-  ]
+  ],
+  "tags": [],
+  "featured": false,
+  "visibility": "サイト限定",
+  "remake": false,
+  "thumb": "https://min-illust.github.io/images/00_元絵.webp",
+  "story": "https://s.kyarapu.com/s/6abf23cf399d00f4aa40c016",
+  "talk": "",
+  "talks": [],
+  "updates": [],
+  "illust_tags": []
 }
