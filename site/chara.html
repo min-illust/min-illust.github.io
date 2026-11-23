@@ -511,7 +511,7 @@ function illustsFor(c){ return illCache[c.id] ||= (c.illusts||[]).map(i=>({...i,
 const ALL_ILL=()=>{const seen=new Set();return characters.flatMap(illustsFor).filter(i=>!seen.has(i.src)&&seen.add(i.src)).sort((a,b)=>String(b.date).localeCompare(String(a.date)));};
 // イラストのタグ・キャラ名から、イラスト一覧へ（キャラ一覧の中だけで移動）
 function goIll(kind,v){
-  try{ if(window.goatcounter&&goatcounter.count) goatcounter.count({path:`chara-${kind==="ic"?"chara":"illust-tag"}/${v}`,title:(kind==="ic"?"キャラ：":"イラストのタグ：#")+v,event:true}); }catch(e){}
+  gcSend({path:`chara-${kind==="ic"?"chara":"illust-tag"}/${v}`,title:(kind==="ic"?"キャラ：":"イラストのタグ：#")+v,event:true});
   setTimeout(()=>{ location.href=`${CHARA_TOP}?${kind}=${encodeURIComponent(v)}`; },120);
 }
 
@@ -655,7 +655,7 @@ function render(){
 
 // タグで絞り込み（URLにも残すので、共有・戻るでも同じ状態になる）
 // アクセス解析（GoatCounter）にタグのクリックを記録
-function countTag(t){ try{ if(t&&window.goatcounter&&goatcounter.count) goatcounter.count({path:"chara-tag/"+t,title:"タグ：#"+t,event:true}); }catch(e){} }
+function countTag(t){ if(t) gcSend({path:"chara-tag/"+t,title:"タグ：#"+t,event:true}); }
 function setTag(t){
   countTag(t);
   state.tag=t;
@@ -779,6 +779,14 @@ function detailHTML(c,all,solo){
 }
 // ===== リクエスト（押すだけ。アクセス解析に数が記録される。外部には飛ばない） =====
 const REQ={story:"ストーリー版も遊びたい",talk:"トーク版も遊びたい",illust:"イラストがもっと見たい"};
+// 記録の仕組み（GoatCounter）がまだ読み込み中でも取りこぼさないように、読み込みが終わるまで待ってから送る
+function gcSend(ev){
+  let tries=0;
+  (function go(){
+    try{ if(window.goatcounter&&goatcounter.count){ goatcounter.count(ev); return; } }catch(e){ return; }
+    if(++tries<60) setTimeout(go,250); // 最大15秒待つ
+  })();
+}
 const reqKey=(c,t)=>`min-req:${c.id}:${t}`;
 const reqSent=(c,t)=>{try{return localStorage.getItem(reqKey(c,t))==="1"}catch(e){return false}};
 function reqHTML(c,hasStory,hasTalk){
@@ -790,7 +798,7 @@ document.addEventListener("click",e=>{
   const b=e.target.closest("[data-req]"); if(!b) return;
   const box=b.closest("[data-req-id]"); const c=characters.find(x=>x.id===box.dataset.reqId); if(!c) return;
   const t=b.dataset.req;
-  try{ if(window.goatcounter&&goatcounter.count) goatcounter.count({path:`request/${t}/${c.title}`,title:`リクエスト：${REQ[t]}（${c.title}）`,event:true}); }catch(err){}
+  gcSend({path:`request/${t}/${c.title}`,title:`リクエスト：${REQ[t]}（${c.title}）`,event:true});
   try{ localStorage.setItem(reqKey(c,t),"1") }catch(err){}
   b.removeAttribute("data-req"); b.disabled=true; b.classList.add("sent"); b.textContent="✓ "+REQ[t];
   box.querySelector(".thx").textContent="リクエストを受け付けました！ありがとうございます";
