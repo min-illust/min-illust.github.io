@@ -15,16 +15,21 @@ if (!token || !code) { console.log("GoatCounterのAPIキー（GC_TOKEN）がま�
 const LABEL = { story: "ストーリー版も遊びたい", talk: "トーク版も遊びたい", illust: "イラストがもっと見たい" };
 const api = async (q) => {
   const r = await fetch(`https://${code}.goatcounter.com/api/v0/stats/hits?${q}`, { headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" } });
-  if (!r.ok) throw new Error(`GoatCounter API ${r.status}: ${(await r.text()).slice(0, 300)}`);
+  if (!r.ok) {
+    // 原因が分かるように、キー自体が使えるかも確かめて書き出す
+    const me = await fetch(`https://${code}.goatcounter.com/api/v0/me`, { headers: { Authorization: `Bearer ${token}` } }).then((x) => x.status).catch(() => "?");
+    throw new Error(`GoatCounter API ${r.status}（キーの確認：${me}）: ${(await r.text()).slice(0, 300)}  /  ${q}`);
+  }
   return r.json();
 };
 
 // 全期間（リクエスト機能を作った日から今日まで）のヒットを、ページを送りながら全部集める
-const today = new Date(Date.now() + 9 * 3600e3).toISOString().slice(0, 10);
+// 日時は「1時間単位に丸めた日時」で渡す（GoatCounterのAPIの決まり）
+const end = new Date(Math.ceil(Date.now() / 3600e3) * 3600e3).toISOString().replace(/\.\d+Z$/, "Z");
 const counts = {};
 let exclude = [];
 for (let page = 0; page < 30; page++) {
-  const q = new URLSearchParams({ start: "2026-11-20", end: today, limit: "100" });
+  const q = new URLSearchParams({ start: "2026-11-20T00:00:00Z", end, limit: "100" });
   if (exclude.length) q.set("exclude_paths", exclude.join(","));
   const j = await api(q.toString());
   const hits = j.hits || [];
