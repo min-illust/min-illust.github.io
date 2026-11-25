@@ -452,12 +452,25 @@ console.log(`作品まとめ：${groups.length} 件`);
     return best && best.dist <= Math.max(2, Math.ceil(n.length * 0.3)) ? best.title : ""; };
   const bad = posts.filter((p) => p.unmatched);
   const noIll = characters.filter((c) => !c.illusts.length);
+  // リクエストの数（1時間ごとに GitHub Actions が GoatCounter から集めて content/requests.json に保存）
+  const reqFile = await readJSON(path.join(ROOT, "content/requests.json"), null);
+  const reqRows = new Map();
+  for (const r of Object.values((reqFile && reqFile.counts) || {})) {
+    const row = reqRows.get(r.title) || { title: r.title, story: 0, talk: 0, illust: 0 };
+    row[r.type] = (row[r.type] || 0) + r.count; reqRows.set(r.title, row);
+  }
+  const reqList = [...reqRows.values()].sort((a, b) => (b.story + b.talk + b.illust) - (a.story + a.talk + a.illust) || a.title.localeCompare(b.title, "ja"));
+  const cell = (n) => n ? `<b>${n}</b>` : `<span style="opacity:.35">0</span>`;
+  const reqHTML = !reqFile ? `<p><small>まだ集計していません（GoatCounterのAPIキーを設定すると、1時間ごとに自動で集まります）。</small></p>`
+    : reqList.length ? `<table><tr><th>作品</th><th>ストーリー版</th><th>トーク版</th><th>イラスト</th></tr>${reqList.map((r) => `<tr><td>${esc(r.title)}</td><td>${cell(r.story)}</td><td>${cell(r.talk)}</td><td>${cell(r.illust)}</td></tr>`).join("")}</table><p><small>${esc(new Date(reqFile.updated).toLocaleString("ja-JP", { timeZone: "Asia/Tokyo" }))} 時点。押した人の数です（同じ人が同じボタンを何度押しても1回）。</small></p>`
+    : `<p class="ok">まだリクエストはありません</p>`;
   const order = { "非表示": 0, "先行公開": 1, "サイト限定": 2 };
   const special = characters.filter((c) => c.visibility !== "通常").sort((a, b) => order[a.visibility] - order[b.visibility] || b.published.localeCompare(a.published));
   const row = (p) => { const s = suggest(p.unmatched); return `<tr><td>${esc(p.date)}</td><td>${esc(p.label)}</td><td><b>${esc(p.unmatched)}</b></td><td>${s ? `もしかして「${esc(s)}」？` : "似た作品なし（まだ登録していない？）"}</td></tr>`; };
   const html = `<!doctype html><html lang="ja"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>作品名チェック</title>
 <style>body{font-family:system-ui,sans-serif;margin:0;padding:20px 16px 48px;max-width:760px;margin-inline:auto;line-height:1.6;background:#f6f4ef;color:#141312}h1{font-size:22px}h2{font-size:16px;margin-top:28px;border-bottom:2px solid #141312}table{width:100%;border-collapse:collapse;font-size:13px}td,th{border-bottom:1px solid #ccc;padding:6px 4px;text-align:left;vertical-align:top}.ok{color:#1a7f37;font-weight:700}small{color:#666}@media(prefers-color-scheme:dark){body{background:#121110;color:#efece4}h2{border-color:#efece4}td,th{border-color:#444}small{color:#aaa}.ok{color:#5fd07d}}</style>
 <h1>作品名チェック（自分用）</h1><p><small>${esc(new Date().toLocaleString("ja-JP", { timeZone: "Asia/Tokyo" }))} 時点。作品名の結びつき、公開の範囲が特別な作品（非表示・先行公開・サイト限定）のURL、イラストがまだない作品の確認用です。このページはどこからもリンクしていません。</small></p>
+<h2>リクエスト</h2>${reqHTML}
 <h2>結びついていないイラスト投稿（${bad.length}件）</h2>${bad.length ? `<table><tr><th>日付</th><th>投稿</th><th>入力した作品名</th><th>候補</th></tr>${bad.map(row).join("")}</table><p><small>直し方：投稿の「キャラぷの作品」を一覧から選び直すか、作品名をキャラ（リンク集）と同じにする。キャラぷのURLを入れても結びつきます。</small></p>` : `<p class="ok">すべて結びついています</p>`}
 <h2>公開の範囲が「通常」以外の作品（${special.length}件）</h2>${special.length ? `<table><tr><th>範囲</th><th>作品</th><th>公開日</th><th>作品ページ</th></tr>${special.map((c) => `<tr><td><b>${esc(c.visibility)}</b>${c.remake ? "<br><small>リメイク予定</small>" : ""}${c.releasePlan ? `<br><small>${esc(c.releasePlan)} 一般公開予定</small>` : ""}</td><td>${esc(c.title)}</td><td>${esc(c.published)}</td><td><a href="${esc(SITE_URL)}/chara/w/${esc(c.id)}/" target="_blank" rel="noopener">開く</a> <button onclick="navigator.clipboard.writeText('${esc(SITE_URL)}/chara/w/${esc(c.id)}/').then(()=>this.textContent='コピー済み')">URLをコピー</button></td></tr>`).join("")}</table><p><small>非表示の作品は、このURLを知っている人だけが見られます。公開するときは、管理画面で公開の範囲を変え、公開日を実際に公開する日にしてください。</small></p>` : `<p class="ok">なし</p>`}
 <h2>イラストがまだない作品（${noIll.length}件）</h2>${noIll.length ? `<table>${noIll.map((c) => `<tr><td>${esc(c.published)}</td><td>${esc(c.title)}</td></tr>`).join("")}</table>` : `<p class="ok">なし</p>`}

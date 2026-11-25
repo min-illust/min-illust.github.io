@@ -1,0 +1,48 @@
+name: リクエストの数を集める
+
+on:
+  schedule:
+    - cron: "17 * * * *"   # 1時間ごと
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  issues: write
+  actions: write
+
+concurrency:
+  group: requests
+  cancel-in-progress: false
+
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - id: req
+        run: node scripts/requests.mjs
+        env:
+          GC_TOKEN: ${{ secrets.GOATCOUNTER_TOKEN }}
+      - if: steps.req.outputs.changed == 'yes'
+        name: 保存して、サイトを作り直す
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add content/requests.json
+          git commit -m "リクエストの数を更新"
+          git push
+          gh workflow run build.yml
+        env:
+          GH_TOKEN: ${{ github.token }}
+      - if: steps.req.outputs.changed == 'yes' && steps.req.outputs.news != ''
+        name: 新しいリクエストをお知らせ（GitHubからメールが届きます）
+        run: |
+          printf '%s\n\n%s\n\n一覧：https://min-illust.github.io/check/\n\n@%s\n' "新しいリクエストが届きました。" "$NEWS" "$OWNER" > body.md
+          gh issue create --title "新しいリクエストが届きました（$(TZ=Asia/Tokyo date '+%m/%d %H:%M')）" --body-file body.md
+        env:
+          GH_TOKEN: ${{ github.token }}
+          NEWS: ${{ steps.req.outputs.news }}
+          OWNER: ${{ github.repository_owner }}
