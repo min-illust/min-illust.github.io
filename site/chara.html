@@ -449,7 +449,7 @@ try {
 /* ================= 設定 ================= */
 const BOOT = window.__CHARA || {characters:[]};
 const TODAY = new Date();
-const BADGE_DAYS = 14;                  // NEW / UPDATE を出す日数
+const BADGE_DAYS = 7;                   // NEW / UPDATE / NEWS を出す日数
 const PICKUP_MAX = 12;                   // 上部ピックアップの最大数
 const GALLERY_PREVIEW = 6;              // 詳細画面に最初に並べるイラスト枚数
 
@@ -705,7 +705,9 @@ document.addEventListener("click",e=>{
 function newsHTML(c){
   const rows=(c.updates||[]).filter(u=>daysAgo(u.date)<=BADGE_DAYS).map(u=>({date:u.date,text:u.text}));
   const added=(c.illusts||[]).filter(i=>i.date&&i.date>c.published&&daysAgo(i.date)<=BADGE_DAYS);
-  if(added.length){const d=added.map(i=>i.date).sort().pop();rows.push({date:d,text:`イラスト追加（${added.length}枚）`})}
+  // イラストは追加した日ごとに分けて出す（前に追加した分と合計しない）
+  const byDay={}; added.forEach(i=>{byDay[i.date]=(byDay[i.date]||0)+1});
+  Object.entries(byDay).forEach(([d,n])=>rows.push({date:d,text:`イラスト追加（${n}枚）`}));
   if(!rows.length) return "";
   rows.sort((a,b)=>b.date.localeCompare(a.date));
   return `<div class="news foldbox"><h4>NEWS</h4><ul style="margin:2px 0 0;padding:0">${rows.map((r,i)=>`<li${i>=NEWS_SHOW?' class="fold-more"':""}><span>${esc(md(r.date))}</span>${esc(r.text)}</li>`).join("")}</ul>${foldBtn(rows.length,NEWS_SHOW)}</div>`;
