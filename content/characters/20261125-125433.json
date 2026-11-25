@@ -1,0 +1,58 @@
+{
+  "title": "彼氏が元カノ優先するんだが",
+  "published": "2026-11-25",
+  "category": "1:1ロールプレイ",
+  "genres": [
+    "恋愛"
+  ],
+  "tagline": "明るく人懐っこく、よく笑う。恋人には素直に愛情を向ける、かなり甘めの彼氏。\nそんなニコには、幼稚園からの幼馴染で、学生時代に付き合っていた元カノがいる。\n呼ばれれば会いに行き、頼られれば応える。困っていれば、自分が助けるのが当たり前。\nニコ自身は、その距離感をおかしいと思っていない。",
+  "synopsis": "",
+  "profiles": [
+    {
+      "name": "藤本ニコ",
+      "birthday": "5/12",
+      "items": [
+        {
+          "label": "血液型",
+          "value": "A型"
+        },
+        {
+          "label": "身長",
+          "value": "178cm"
+        },
+        {
+          "label": "好きな食べ物",
+          "value": "パスタ、肉料理"
+        },
+        {
+          "label": "苦手なもの",
+          "value": "パクチー、生牡蠣"
+        },
+        {
+          "label": "趣味",
+          "value": "スニーカー集め、映画鑑賞"
+        },
+        {
+          "label": "特技",
+          "value": "料理"
+        }
+      ]
+    }
+  ],
+  "charas": [
+    "藤本ニコ"
+  ],
+  "tags": [
+    "彼氏"
+  ],
+  "featured": false,
+  "visibility": "通常",
+  "release_plan": "",
+  "remake": false,
+  "thumb": "/images/元絵.png",
+  "story": "https://s.kyarapu.com/s/6afbf5880f15f4f5c9602994",
+  "talk": "https://s.kyarapu.com/s/6b06d7eca0d0ae43396b124a",
+  "talks": [],
+  "updates": [],
+  "illust_tags": []
+}
