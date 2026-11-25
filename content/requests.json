@@ -1,10 +1,15 @@
 {
-  "updated": "2026-11-25T02:47:13.912Z",
+  "updated": "2026-11-25T22:31:08.881Z",
   "counts": {
     "request/illust/あの子と彼氏と彼氏の弟": {
       "type": "illust",
       "title": "あの子と彼氏と彼氏の弟",
       "count": 5
+    },
+    "request/illust/彼氏が元カノ優先するんだが": {
+      "type": "illust",
+      "title": "彼氏が元カノ優先するんだが",
+      "count": 2
     },
     "request/talk/あの子と彼氏と彼氏の弟": {
       "type": "talk",
