@@ -13,8 +13,9 @@ const out = async (k, v) => { if (process.env.GITHUB_OUTPUT) await fs.appendFile
 if (!token || !code) { console.log("GoatCounterのAPIキー（GC_TOKEN）がまだ設定されていないので、何もしません"); await out("changed", "no"); process.exit(0); }
 
 const LABEL = { story: "ストーリー版も遊びたい", talk: "トーク版も遊びたい", illust: "イラストがもっと見たい" };
-const api = async (q) => {
+const api = async (q, tries = 3) => {
   const r = await fetch(`https://${code}.goatcounter.com/api/v0/stats/hits?${q}`, { headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" } });
+  if (!r.ok && tries > 1) { await new Promise((ok) => setTimeout(ok, 20000)); return api(q, tries - 1); } // GoatCounter側の一時的なエラーは少し待ってやり直す
   if (!r.ok) {
     // 原因が分かるように、キー自体が使えるかも確かめて書き出す
     const me = await fetch(`https://${code}.goatcounter.com/api/v0/me`, { headers: { Authorization: `Bearer ${token}` } }).then((x) => x.status).catch(() => "?");
@@ -31,7 +32,13 @@ let exclude = [];
 for (let page = 0; page < 30; page++) {
   const q = new URLSearchParams({ start: "2026-11-20T00:00:00Z", end, limit: "100" });
   if (exclude.length) q.set("exclude_paths", exclude.join(","));
-  const j = await api(q.toString());
+  let j;
+  try { j = await api(q.toString()); }
+  catch (e) {
+    // 何回やり直してもダメなときは、今回は飛ばして次の回にまかせる（失敗メールを出さない）
+    console.log(`::warning::GoatCounterから取れなかったので今回は飛ばします：${e.message}`);
+    await out("changed", "no"); process.exit(0);
+  }
   const hits = j.hits || [];
   for (const h of hits) {
     const m = String(h.path || "").match(/^request\/(story|talk|illust)\/(.+)$/);
