@@ -79,6 +79,8 @@
   "thumb": "/images/元絵-1.png",
   "story": "https://s.kyarapu.com/s/6b0403068e8d1fae413f3972",
   "story_early": false,
+  "story_name": "",
+  "stories_more": [],
   "talk": "",
   "talk_early": false,
   "talks": [
@@ -88,6 +90,11 @@
       "early": false
     }
   ],
-  "updates": [],
+  "updates": [
+    {
+      "date": "2026-11-27",
+      "text": "創介トーク版公開"
+    }
+  ],
   "illust_tags": []
 }
