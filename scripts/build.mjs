@@ -357,6 +357,8 @@ for (const w of works) {
     featured: !!raw.featured,
     visibility: ["サイト限定", "先行公開", "非表示"].includes(String(raw.visibility || "").trim()) ? String(raw.visibility).trim() : "通常",
     releasePlan: String(raw.visibility || "").trim() === "先行公開" ? String(raw.release_plan || "").trim() : "",
+    // 先行公開するのはどれか（all / story / talk）。先行公開でなければ空
+    earlyTarget: String(raw.visibility || "").trim() !== "先行公開" ? "" : ({ "ストーリー版だけ": "story", "トーク版だけ": "talk" })[String(raw.early_target || "").trim()] || "all",
     remake: !!raw.remake,
     published: day(raw.published),
     thumb: await charaThumb(raw.thumb),
@@ -477,7 +479,7 @@ console.log(`作品まとめ：${groups.length} 件`);
 <h1>作品名チェック（自分用）</h1><p><small>${esc(new Date().toLocaleString("ja-JP", { timeZone: "Asia/Tokyo" }))} 時点。作品名の結びつき、公開の範囲が特別な作品（非表示・先行公開・サイト限定）のURL、イラストがまだない作品の確認用です。このページはどこからもリンクしていません。</small></p>
 <h2>リクエスト</h2>${reqHTML}
 <h2>結びついていないイラスト投稿（${bad.length}件）</h2>${bad.length ? `<table><tr><th>日付</th><th>投稿</th><th>入力した作品名</th><th>候補</th></tr>${bad.map(row).join("")}</table><p><small>直し方：投稿の「キャラぷの作品」を一覧から選び直すか、作品名をキャラ（リンク集）と同じにする。キャラぷのURLを入れても結びつきます。</small></p>` : `<p class="ok">すべて結びついています</p>`}
-<h2>公開の範囲が「通常」以外の作品（${special.length}件）</h2>${special.length ? `<table><tr><th>範囲</th><th>作品</th><th>公開日</th><th>作品ページ</th></tr>${special.map((c) => `<tr><td><b>${esc(c.visibility)}</b>${c.remake ? "<br><small>リメイク予定</small>" : ""}${c.releasePlan ? `<br><small>${esc(c.releasePlan)} 一般公開予定</small>` : ""}</td><td>${esc(c.title)}</td><td>${esc(c.published)}</td><td><a href="${esc(SITE_URL)}/chara/w/${esc(c.id)}/" target="_blank" rel="noopener">開く</a> <button onclick="navigator.clipboard.writeText('${esc(SITE_URL)}/chara/w/${esc(c.id)}/').then(()=>this.textContent='コピー済み')">URLをコピー</button></td></tr>`).join("")}</table><p><small>非表示の作品は、このURLを知っている人だけが見られます。公開するときは、管理画面で公開の範囲を変え、公開日を実際に公開する日にしてください。</small></p>` : `<p class="ok">なし</p>`}
+<h2>公開の範囲が「通常」以外の作品（${special.length}件）</h2>${special.length ? `<table><tr><th>範囲</th><th>作品</th><th>公開日</th><th>作品ページ</th></tr>${special.map((c) => `<tr><td><b>${c.earlyTarget === "story" ? "ストーリー版だけ" : c.earlyTarget === "talk" ? "トーク版だけ" : ""}${esc(c.visibility)}</b>${c.remake ? "<br><small>リメイク予定</small>" : ""}${c.releasePlan ? `<br><small>${esc(c.releasePlan)} 一般公開予定</small>` : ""}</td><td>${esc(c.title)}</td><td>${esc(c.published)}</td><td><a href="${esc(SITE_URL)}/chara/w/${esc(c.id)}/" target="_blank" rel="noopener">開く</a> <button onclick="navigator.clipboard.writeText('${esc(SITE_URL)}/chara/w/${esc(c.id)}/').then(()=>this.textContent='コピー済み')">URLをコピー</button></td></tr>`).join("")}</table><p><small>非表示の作品は、このURLを知っている人だけが見られます。公開するときは、管理画面で公開の範囲を変え、公開日を実際に公開する日にしてください。</small></p>` : `<p class="ok">なし</p>`}
 <h2>イラストがまだない作品（${noIll.length}件）</h2>${noIll.length ? `<table>${noIll.map((c) => `<tr><td>${esc(c.published)}</td><td>${esc(c.title)}</td></tr>`).join("")}</table>` : `<p class="ok">なし</p>`}
 </html>`;
   await fs.mkdir(path.join(OUT, "check"), { recursive: true });

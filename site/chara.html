@@ -171,6 +171,7 @@
   .mini.lim+.mini.rmk{top:14px}
   /* 先行公開 */
   .mini.lim.early,.bd.lim.early,#only .pk .k.early{background:var(--red);color:var(--paper);border-color:var(--paper)}
+  .btn{position:relative}.btn-early{font-family:system-ui,sans-serif;position:absolute;top:-8px;right:-4px;background:var(--yellow);color:var(--ink,#141312);font-size:9px;font-weight:900;line-height:1;padding:3px 6px;border-radius:999px;border:1.5px solid var(--ink,#141312);letter-spacing:0}
   .early-note{font-size:11px;font-weight:900;color:var(--red);margin-top:3px}
   .bd.lim{background:var(--ink);color:var(--yellow);font-family:"Zen Kaku Gothic New",sans-serif;font-weight:900;font-size:12px}
   .bd.rmk{background:var(--paper);border:2px solid var(--ink);font-family:"Zen Kaku Gothic New",sans-serif;font-weight:900;font-size:12px}
@@ -549,7 +550,10 @@ st.addEventListener("click",e=>{if(e.target===st)lbClose()});
 // サイト限定・先行公開：どちらも一覧のいちばん上「ONLY HERE」に並ぶ
 const isOnly=c=>c.visibility==="サイト限定"||c.visibility==="先行公開";
 const isEarly=c=>c.visibility==="先行公開";
-const onlyLabel=c=>isEarly(c)?"先行公開":"限定";
+const earlyWhat=c=>c.earlyTarget==="story"?"ストーリー版":c.earlyTarget==="talk"?"トーク版":"";
+const onlyLabel=c=>isEarly(c)?(earlyWhat(c)?`${earlyWhat(c)} 先行公開`:"先行公開"):"限定";
+const earlyOn=(c,kind)=>isEarly(c)&&(!c.earlyTarget||c.earlyTarget==="all"||c.earlyTarget===kind);
+const earlyMark=(c,kind)=>earlyOn(c,kind)&&earlyWhat(c)?`<span class="btn-early">先行公開</span>`:"";
 (function renderOnly(){
   // 先行公開を先に、そのあとサイト限定。それぞれ新しい順
   const items=characters.filter(c=>isOnly(c)).sort((a,b)=>(isEarly(b)-isEarly(a))||String(b.published).localeCompare(String(a.published)));
@@ -756,10 +760,10 @@ function detailHTML(c,all,solo){
     <div class="sh-top">
       <img src="${face(c,idx[c.id])}" alt="${esc(c.title)}">
       <div>
-        <div class="sh-badges">${isOnly(c)?`<span class="bd lim${isEarly(c)?" early":""}">${isEarly(c)?"先行公開":"サイト限定"}</span>`:""}${c.remake?`<span class="bd rmk">リメイク予定</span>`:""}${marks(c).map(m=>m==="new"?`<span class="bd new">NEW</span>`:`<span class="bd up">UPDATE</span>`).join("")}</div>
+        <div class="sh-badges">${isOnly(c)?`<span class="bd lim${isEarly(c)?" early":""}">${isEarly(c)?onlyLabel(c):"サイト限定"}</span>`:""}${c.remake?`<span class="bd rmk">リメイク予定</span>`:""}${marks(c).map(m=>m==="new"?`<span class="bd new">NEW</span>`:`<span class="bd up">UPDATE</span>`).join("")}</div>
         ${solo?`<h2 class="sh-title">${esc(c.title)}</h2>`:`<h3 class="sh-title">${esc(c.title)}</h3>`}
         <p class="sh-cat">${esc(c.category)}</p>
-        ${isEarly(c)?`<p class="early-note">このサイトから先に遊べます${c.releasePlan?`（キャラぷでの一般公開は${esc(c.releasePlan)}予定）`:""}</p>`:""}
+        ${isEarly(c)?`<p class="early-note">${earlyWhat(c)?`${earlyWhat(c)}は`:""}このサイトから先に遊べます${c.releasePlan?`（キャラぷでの一般公開は${esc(c.releasePlan)}予定）`:""}</p>`:""}
         <div class="sh-genres">${(c.genres||[]).map(g=>`<span class="sg">${esc(g)}</span>`).join("")}</div>
       </div>
     </div>
@@ -769,10 +773,10 @@ function detailHTML(c,all,solo){
     <div class="tags">${(c.tags||[]).map(t=>`<button class="tag" data-tag="${esc(t)}">#${esc(t)}</button>`).join("")}</div>
     <p class="sh-date">RELEASE ${dot(c.published)}${lu?` / UPDATE ${dot(lu)}`:""}</p>
     <div class="btns">
-      ${story?`<a class="btn story" href="${esc(c.story)}" target="_blank" rel="noopener">STORY<small>ストーリー</small></a>`:""}
-      ${!named&&talks[0]?`<a class="btn talk" href="${esc(talks[0].url)}" target="_blank" rel="noopener">TALK<small>トーク</small></a>`:""}
+      ${story?`<a class="btn story" href="${esc(c.story)}" target="_blank" rel="noopener">${earlyMark(c,"story")}STORY<small>ストーリー</small></a>`:""}
+      ${!named&&talks[0]?`<a class="btn talk" href="${esc(talks[0].url)}" target="_blank" rel="noopener">${earlyMark(c,"talk")}TALK<small>トーク</small></a>`:""}
     </div>
-    ${named?`<div class="btns talks">${talks.map(t=>`<a class="btn talk" href="${esc(t.url)}" target="_blank" rel="noopener">TALK<small>${esc(t.name||"トーク")}</small></a>`).join("")}</div>`:""}
+    ${named?`<div class="btns talks">${talks.map(t=>`<a class="btn talk" href="${esc(t.url)}" target="_blank" rel="noopener">${earlyMark(c,"talk")}TALK<small>${esc(t.name||"トーク")}</small></a>`).join("")}</div>`:""}
     ${reqHTML(c,!!story,talks.length>0)}
     ${galHTML}
     ${hist.length?`<div class="hist foldbox"><h4>UPDATE LOG</h4><ul>${hist.map((u,i)=>`<li${i>=LOG_SHOW?' class="fold-more"':""}><span>${dot(u.date)}</span>${esc(u.text)}</li>`).join("")}</ul>${foldBtn(hist.length,LOG_SHOW)}</div>`:""}
