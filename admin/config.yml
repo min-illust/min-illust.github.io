@@ -188,7 +188,7 @@ collections:
         widget: select
         options: [通常, サイト限定, 先行公開, 非表示]
         default: 通常
-        required: false
+        required: true
         hint: "サイト限定：キャラぷではリンク公開の作品。一覧のいちばん上「ここでしか遊べない」に並びます／先行公開：キャラぷで一般公開する前に、このサイトから先に遊べる作品（一般公開したら「通常」に戻してください）／非表示：一覧・検索・CREATIVE LOGのどこにも出さず、作品ページのURLを知っている人だけ"
       - { name: release_plan, label: 一般公開の予定（先行公開のとき・任意・例：12/1、12月上旬）, widget: string, required: false }
       - { name: remake, label: リメイク予定（「リメイク予定」の印が付きます）, widget: boolean, default: false, required: false }
