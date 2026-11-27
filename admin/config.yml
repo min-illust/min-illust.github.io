@@ -198,7 +198,21 @@ collections:
         widget: string
         required: false
         pattern: ['^$|^https://([a-z0-9-]+\.)*kyarapu\.com/', "キャラぷのURL（https://〜kyarapu.com/〜）だけ入れられます"]
-      - { name: story_early, label: ストーリーを先行公開（公開の範囲が「先行公開」のとき・どれにもチェックがなければ全部が先行公開）, widget: boolean, default: false, required: false }
+      - { name: story_early, label: このストーリーを先行公開（公開の範囲が「先行公開」のとき・どれにもチェックがなければ全部が先行公開）, widget: boolean, default: false, required: false }
+      - { name: story_name, label: このストーリーの名前（ストーリーが2つ以上のときボタンに出ます・任意・例：本編、第1部）, widget: string, required: false }
+      - name: stories_more
+        label: 2つ目からのストーリー（ストーリーが2つ以上あるとき）
+        label_singular: ストーリー
+        widget: list
+        required: false
+        summary: "{{fields.name}}"
+        fields:
+          - { name: name, label: 名前（ボタンに出ます・例：第2部、別ルート）, widget: string, required: false }
+          - name: url
+            label: ストーリーのURL
+            widget: string
+            pattern: ['^https://([a-z0-9-]+\.)*kyarapu\.com/', "キャラぷのURL（https://〜kyarapu.com/〜）だけ入れられます"]
+          - { name: early, label: このストーリーを先行公開（公開の範囲が「先行公開」のとき）, widget: boolean, default: false, required: false }
       - name: talk
         label: トークのURL（キャラぷ・トークが1つだけのとき）
         widget: string

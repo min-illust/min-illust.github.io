@@ -289,7 +289,7 @@
   .foldbtn{margin-top:4px;font-size:11px;font-weight:900;color:var(--red);padding:0;background:none;border:0;cursor:pointer}
   .news .foldbtn{color:var(--ink)}
   .sh-date{font-family:"Space Mono",monospace;font-size:11px;color:#6b655a;margin-top:10px}
-  .btns{display:flex;gap:8px;margin-top:14px}
+  .btns{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}.btns .btn.story:nth-last-child(n+3),.btns .btn.story:nth-last-child(n+3)~.btn.story{flex:1 1 calc(50% - 4px);font-size:16px}
   .btn{
     flex:1;text-align:center;text-decoration:none;
     font-family:"Anton",sans-serif;font-size:19px;letter-spacing:.08em;
@@ -551,10 +551,13 @@ st.addEventListener("click",e=>{if(e.target===st)lbClose()});
 const isOnly=c=>c.visibility==="サイト限定"||c.visibility==="先行公開";
 const isEarly=c=>c.visibility==="先行公開";
 // 先行公開：ストーリー・各トークにチェックがあればそれだけ、なければ全部
-const earlyPick=c=>isEarly(c)&&(c.earlyStory||(c.talks||[]).some(t=>t.early));
-const earlyWhat=c=>{if(!earlyPick(c))return "";const ts=(c.talks||[]).filter(t=>t.early);const all=ts.length&&ts.length===(c.talks||[]).length;
-  const talkTxt=!ts.length?"":all||(c.talks||[]).length===1?"トーク版":ts.map(t=>t.name||"トーク").join("・")+"のトーク";
-  return [c.earlyStory?"ストーリー版":"",talkTxt].filter(Boolean).join("と")};
+const earlyPick=c=>isEarly(c)&&((c.stories||[]).some(t=>t.early)||(c.talks||[]).some(t=>t.early));
+const storyList=c=>(c.stories&&c.stories.length?c.stories:(c.story?[{name:"",url:c.story,early:c.earlyStory}]:[]));
+const storyName=(c,t)=>t.name||`ストーリー${storyList(c).indexOf(t)+1}`;
+const earlyWhat=c=>{if(!earlyPick(c))return "";const ss=storyList(c),es=ss.filter(t=>t.early),ts=(c.talks||[]).filter(t=>t.early);
+  const storyTxt=!es.length?"":es.length===ss.length?"ストーリー版":es.map(t=>`「${storyName(c,t)}」`).join("・")+"のストーリー";
+  const talkTxt=!ts.length?"":ts.length===(c.talks||[]).length?"トーク版":ts.map(t=>t.name||"トーク").join("・")+"のトーク";
+  return [storyTxt,talkTxt].filter(Boolean).join("と")};
 const onlyLabel=c=>isEarly(c)?(earlyWhat(c)?`${earlyWhat(c).length>12?"一部":earlyWhat(c)} 先行公開`:"先行公開"):"限定";
 const earlyMark=(c,on)=>isEarly(c)&&earlyPick(c)&&on?`<span class="btn-early">先行公開</span>`:"";
 (function renderOnly(){
@@ -754,7 +757,8 @@ function detailHTML(c,all,solo){
       (k===shown.length-1&&rest>0)?`<span class="more" data-more="1">+${rest}</span>`:""}</button>`).join("")}</div>`
     :`<p class="gal-note">まだイラストはありません</p>`}</div>`;
   const s=status(c), lu=lastUpdate(c);
-  const story=c.story&&isKyarapu(c.story);
+  const stories=storyList(c).filter(t=>isKyarapu(t.url));
+  const story=stories.length>0;
   const talks=(c.talks&&c.talks.length?c.talks:(c.talk?[{name:"",url:c.talk}]:[])).filter(t=>isKyarapu(t.url));
   const named=talks.length>1||talks.some(t=>t.name&&(c.charas||[]).length>1);
   const hist=[...(c.updates||[])].sort((a,b)=>b.date.localeCompare(a.date));
@@ -776,9 +780,11 @@ function detailHTML(c,all,solo){
     <div class="tags">${(c.tags||[]).map(t=>`<button class="tag" data-tag="${esc(t)}">#${esc(t)}</button>`).join("")}</div>
     <p class="sh-date">RELEASE ${dot(c.published)}${lu?` / UPDATE ${dot(lu)}`:""}</p>
     <div class="btns">
-      ${story?`<a class="btn story" href="${esc(c.story)}" target="_blank" rel="noopener">${earlyMark(c,c.earlyStory)}STORY<small>ストーリー</small></a>`:""}
-      ${!named&&talks[0]?`<a class="btn talk" href="${esc(talks[0].url)}" target="_blank" rel="noopener">${earlyMark(c,talks[0].early)}TALK<small>トーク</small></a>`:""}
+      ${stories.length===1?`<a class="btn story" href="${esc(stories[0].url)}" target="_blank" rel="noopener">${earlyMark(c,stories[0].early)}STORY<small>ストーリー</small></a>`:""}
+      ${stories.length>1?stories.map(t=>`<a class="btn story" href="${esc(t.url)}" target="_blank" rel="noopener">${earlyMark(c,t.early)}STORY<small>${esc(storyName(c,t))}</small></a>`).join(""):""}
+      ${!named&&stories.length<2&&talks[0]?`<a class="btn talk" href="${esc(talks[0].url)}" target="_blank" rel="noopener">${earlyMark(c,talks[0].early)}TALK<small>トーク</small></a>`:""}
     </div>
+    ${!named&&stories.length>1&&talks[0]?`<div class="btns talks"><a class="btn talk" href="${esc(talks[0].url)}" target="_blank" rel="noopener">${earlyMark(c,talks[0].early)}TALK<small>トーク</small></a></div>`:""}
     ${named?`<div class="btns talks">${talks.map(t=>`<a class="btn talk" href="${esc(t.url)}" target="_blank" rel="noopener">${earlyMark(c,t.early)}TALK<small>${esc(t.name||"トーク")}</small></a>`).join("")}</div>`:""}
     ${reqHTML(c,!!story,talks.length>0)}
     ${galHTML}
