@@ -73,17 +73,19 @@
     "浮気"
   ],
   "featured": false,
-  "visibility": "先行公開",
-  "release_plan": "11/27 21時頃",
+  "visibility": "通常",
+  "release_plan": "",
   "remake": false,
   "thumb": "/images/元絵-1.png",
   "story": "https://s.kyarapu.com/s/6b0403068e8d1fae413f3972",
+  "story_early": false,
   "talk": "",
+  "talk_early": false,
   "talks": [
     {
       "name": "榊原創介",
       "url": "https://s.kyarapu.com/s/6b091a27bb06e15e96fbf208",
-      "early": true
+      "early": false
     }
   ],
   "updates": [],
