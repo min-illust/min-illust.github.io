@@ -84,12 +84,27 @@
   "tags": [
     "兄",
     "兄の親友",
-    "幼馴染"
+    "幼馴染",
+    "クズ",
+    "腹黒"
   ],
   "featured": false,
+  "visibility": "通常",
+  "release_plan": "",
+  "remake": false,
   "thumb": "https://min-illust.github.io/images/スチル_23.png",
   "story": "https://s.kyarapu.com/s/6acc5a681337c2616521ecfe",
+  "story_early": false,
+  "story_name": "",
+  "stories_more": [
+    {
+      "name": "九条陽太",
+      "url": "https://s.kyarapu.com/s/6b09a8e6d25efb36d52bd5a5",
+      "early": true
+    }
+  ],
   "talk": "https://s.kyarapu.com/s/6afd645d1dd381218cd2ce06",
+  "talk_early": false,
   "talks": [],
   "updates": [
     {
@@ -101,6 +116,5 @@
       "text": "トーク版公開"
     }
   ],
-  "illust_tags": [],
-  "visibility": "通常"
+  "illust_tags": []
 }
