@@ -190,13 +190,6 @@ collections:
         default: 通常
         required: true
         hint: "サイト限定：キャラぷではリンク公開の作品。一覧のいちばん上「ここでしか遊べない」に並びます／先行公開：キャラぷで一般公開する前に、このサイトから先に遊べる作品（一般公開したら「通常」に戻してください）／非表示：一覧・検索・CREATIVE LOGのどこにも出さず、作品ページのURLを知っている人だけ"
-      - name: early_target
-        label: 先行公開するのは（先行公開のときだけ使います）
-        widget: select
-        options: [全部, ストーリー版だけ, トーク版だけ]
-        default: 全部
-        required: true
-        hint: "すでに片方はキャラぷで一般公開していて、もう片方だけ先にこのサイトで出すときに選びます"
       - { name: release_plan, label: 一般公開の予定（先行公開のとき・任意・例：12/1、12月上旬）, widget: string, required: false }
       - { name: remake, label: リメイク予定（「リメイク予定」の印が付きます）, widget: boolean, default: false, required: false }
       - { name: thumb, label: サムネ（顔のイラスト・正方形に自動で切り抜き）, widget: image, choose_url: false, required: false }
@@ -205,11 +198,13 @@ collections:
         widget: string
         required: false
         pattern: ['^$|^https://([a-z0-9-]+\.)*kyarapu\.com/', "キャラぷのURL（https://〜kyarapu.com/〜）だけ入れられます"]
+      - { name: story_early, label: ストーリーを先行公開（公開の範囲が「先行公開」のとき・どれにもチェックがなければ全部が先行公開）, widget: boolean, default: false, required: false }
       - name: talk
         label: トークのURL（キャラぷ・トークが1つだけのとき）
         widget: string
         required: false
         pattern: ['^$|^https://([a-z0-9-]+\.)*kyarapu\.com/', "キャラぷのURL（https://〜kyarapu.com/〜）だけ入れられます"]
+      - { name: talk_early, label: このトークを先行公開（公開の範囲が「先行公開」のとき）, widget: boolean, default: false, required: false }
       - name: talks
         label: キャラごとのトーク（シミュなど、トークが複数あるとき）
         label_singular: トーク
@@ -223,6 +218,7 @@ collections:
             label: トークのURL
             widget: string
             pattern: ['^https://([a-z0-9-]+\.)*kyarapu\.com/', "キャラぷのURL（https://〜kyarapu.com/〜）だけ入れられます"]
+          - { name: early, label: このトークを先行公開（公開の範囲が「先行公開」のとき）, widget: boolean, default: false, required: false }
       - name: updates
         label: 更新履歴（スチル追加など。新しいものを上に）
         label_singular: 更新

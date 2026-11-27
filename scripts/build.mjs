@@ -323,10 +323,11 @@ for (const w of works) {
   for (const t of Array.isArray(raw.talks) ? raw.talks : []) {
     const url = String((t && t.url) || "").trim();
     if (!isKyarapu(url)) { if (url) console.warn("キャラぷ以外のURLなので外しました:", f, url); continue; }
-    if (!talks.some((x) => x.url === url)) talks.push({ name: String((t && t.name) || "").trim(), url });
+    if (!talks.some((x) => x.url === url)) talks.push({ name: String((t && t.name) || "").trim(), url, early: !!(t && t.early) });
   }
-  if (talk1 && !talks.some((x) => x.url === talk1)) talks.unshift({ name: w.charas.length === 1 ? w.charas[0] : "", url: talk1 });
+  if (talk1 && !talks.some((x) => x.url === talk1)) talks.unshift({ name: w.charas.length === 1 ? w.charas[0] : "", url: talk1, early: !!raw.talk_early });
   const talk = talks[0] ? talks[0].url : "";
+  if (String(raw.visibility || "").trim() !== "先行公開") talks.forEach((t) => { t.early = false; });
   const genres = list(raw.genres).filter((g) => CHARA_GENRES.includes(g));
   const updates = (Array.isArray(raw.updates) ? raw.updates : [])
     .map((u) => ({ date: day(u && u.date), text: String((u && u.text) || "").trim() }))
@@ -357,8 +358,8 @@ for (const w of works) {
     featured: !!raw.featured,
     visibility: ["サイト限定", "先行公開", "非表示"].includes(String(raw.visibility || "").trim()) ? String(raw.visibility).trim() : "通常",
     releasePlan: String(raw.visibility || "").trim() === "先行公開" ? String(raw.release_plan || "").trim() : "",
-    // 先行公開するのはどれか（all / story / talk）。先行公開でなければ空
-    earlyTarget: String(raw.visibility || "").trim() !== "先行公開" ? "" : ({ "ストーリー版だけ": "story", "トーク版だけ": "talk" })[String(raw.early_target || "").trim()] || "all",
+    // 先行公開するのはどれか：ストーリー・各トークのチェック。どれにもチェックがなければ全部が先行公開
+    earlyStory: String(raw.visibility || "").trim() === "先行公開" && !!raw.story_early,
     remake: !!raw.remake,
     published: day(raw.published),
     thumb: await charaThumb(raw.thumb),
@@ -479,7 +480,7 @@ console.log(`作品まとめ：${groups.length} 件`);
 <h1>作品名チェック（自分用）</h1><p><small>${esc(new Date().toLocaleString("ja-JP", { timeZone: "Asia/Tokyo" }))} 時点。作品名の結びつき、公開の範囲が特別な作品（非表示・先行公開・サイト限定）のURL、イラストがまだない作品の確認用です。このページはどこからもリンクしていません。</small></p>
 <h2>リクエスト</h2>${reqHTML}
 <h2>結びついていないイラスト投稿（${bad.length}件）</h2>${bad.length ? `<table><tr><th>日付</th><th>投稿</th><th>入力した作品名</th><th>候補</th></tr>${bad.map(row).join("")}</table><p><small>直し方：投稿の「キャラぷの作品」を一覧から選び直すか、作品名をキャラ（リンク集）と同じにする。キャラぷのURLを入れても結びつきます。</small></p>` : `<p class="ok">すべて結びついています</p>`}
-<h2>公開の範囲が「通常」以外の作品（${special.length}件）</h2>${special.length ? `<table><tr><th>範囲</th><th>作品</th><th>公開日</th><th>作品ページ</th></tr>${special.map((c) => `<tr><td><b>${c.earlyTarget === "story" ? "ストーリー版だけ" : c.earlyTarget === "talk" ? "トーク版だけ" : ""}${esc(c.visibility)}</b>${c.remake ? "<br><small>リメイク予定</small>" : ""}${c.releasePlan ? `<br><small>${esc(c.releasePlan)} 一般公開予定</small>` : ""}</td><td>${esc(c.title)}</td><td>${esc(c.published)}</td><td><a href="${esc(SITE_URL)}/chara/w/${esc(c.id)}/" target="_blank" rel="noopener">開く</a> <button onclick="navigator.clipboard.writeText('${esc(SITE_URL)}/chara/w/${esc(c.id)}/').then(()=>this.textContent='コピー済み')">URLをコピー</button></td></tr>`).join("")}</table><p><small>非表示の作品は、このURLを知っている人だけが見られます。公開するときは、管理画面で公開の範囲を変え、公開日を実際に公開する日にしてください。</small></p>` : `<p class="ok">なし</p>`}
+<h2>公開の範囲が「通常」以外の作品（${special.length}件）</h2>${special.length ? `<table><tr><th>範囲</th><th>作品</th><th>公開日</th><th>作品ページ</th></tr>${special.map((c) => `<tr><td><b>${c.visibility === "先行公開" && (c.earlyStory || c.talks.some((t) => t.early)) ? [c.earlyStory ? "ストーリー" : "", ...c.talks.filter((t) => t.early).map((t) => `トーク${t.name ? `（${t.name}）` : ""}`)].filter(Boolean).join("・") + "だけ" : ""}${esc(c.visibility)}</b>${c.remake ? "<br><small>リメイク予定</small>" : ""}${c.releasePlan ? `<br><small>${esc(c.releasePlan)} 一般公開予定</small>` : ""}</td><td>${esc(c.title)}</td><td>${esc(c.published)}</td><td><a href="${esc(SITE_URL)}/chara/w/${esc(c.id)}/" target="_blank" rel="noopener">開く</a> <button onclick="navigator.clipboard.writeText('${esc(SITE_URL)}/chara/w/${esc(c.id)}/').then(()=>this.textContent='コピー済み')">URLをコピー</button></td></tr>`).join("")}</table><p><small>非表示の作品は、このURLを知っている人だけが見られます。公開するときは、管理画面で公開の範囲を変え、公開日を実際に公開する日にしてください。</small></p>` : `<p class="ok">なし</p>`}
 <h2>イラストがまだない作品（${noIll.length}件）</h2>${noIll.length ? `<table>${noIll.map((c) => `<tr><td>${esc(c.published)}</td><td>${esc(c.title)}</td></tr>`).join("")}</table>` : `<p class="ok">なし</p>`}
 </html>`;
   await fs.mkdir(path.join(OUT, "check"), { recursive: true });
