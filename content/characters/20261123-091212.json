@@ -82,7 +82,8 @@
   "talks": [
     {
       "name": "榊原創介",
-      "url": "https://s.kyarapu.com/s/6b091a27bb06e15e96fbf208"
+      "url": "https://s.kyarapu.com/s/6b091a27bb06e15e96fbf208",
+      "early": true
     }
   ],
   "updates": [],
