@@ -558,7 +558,10 @@ const earlyWhat=c=>{if(!earlyPick(c))return "";const ss=storyList(c),es=ss.filte
   const storyTxt=!es.length?"":es.length===ss.length?"ストーリー版":es.map(t=>`「${storyName(c,t)}」`).join("・")+"のストーリー";
   const talkTxt=!ts.length?"":ts.length===(c.talks||[]).length?"トーク版":ts.map(t=>t.name||"トーク").join("・")+"のトーク";
   return [storyTxt,talkTxt].filter(Boolean).join("と")};
-const onlyLabel=c=>isEarly(c)?(earlyWhat(c)?`${earlyWhat(c).length>12?"一部":earlyWhat(c)} 先行公開`:"先行公開"):"限定";
+// 一覧・ONLY HERE用の短い表示（写真にかぶらないように）。詳細ページは onlyLabelLong で中身まで出す
+const earlyKinds=c=>{if(!earlyPick(c))return "";const s=storyList(c).some(t=>t.early),t=(c.talks||[]).some(t=>t.early);return s&&t?"":s?"ストーリー":"トーク"};
+const onlyLabel=c=>isEarly(c)?`${earlyKinds(c)}先行公開`:"限定";
+const onlyLabelLong=c=>isEarly(c)?(earlyWhat(c)?`${earlyWhat(c)} 先行公開`:"先行公開"):"限定";
 const earlyMark=(c,on)=>isEarly(c)&&earlyPick(c)&&on?`<span class="btn-early">先行公開</span>`:"";
 (function renderOnly(){
   // 先行公開を先に、そのあとサイト限定。それぞれ新しい順
@@ -767,7 +770,7 @@ function detailHTML(c,all,solo){
     <div class="sh-top">
       <img src="${face(c,idx[c.id])}" alt="${esc(c.title)}">
       <div>
-        <div class="sh-badges">${isOnly(c)?`<span class="bd lim${isEarly(c)?" early":""}">${isEarly(c)?onlyLabel(c):"サイト限定"}</span>`:""}${c.remake?`<span class="bd rmk">リメイク予定</span>`:""}${marks(c).map(m=>m==="new"?`<span class="bd new">NEW</span>`:`<span class="bd up">UPDATE</span>`).join("")}</div>
+        <div class="sh-badges">${isOnly(c)?`<span class="bd lim${isEarly(c)?" early":""}">${isEarly(c)?onlyLabelLong(c):"サイト限定"}</span>`:""}${c.remake?`<span class="bd rmk">リメイク予定</span>`:""}${marks(c).map(m=>m==="new"?`<span class="bd new">NEW</span>`:`<span class="bd up">UPDATE</span>`).join("")}</div>
         ${solo?`<h2 class="sh-title">${esc(c.title)}</h2>`:`<h3 class="sh-title">${esc(c.title)}</h3>`}
         <p class="sh-cat">${esc(c.category)}</p>
         ${isEarly(c)?`<p class="early-note">${earlyWhat(c)?`${esc(earlyWhat(c))}は`:""}このサイトから先に遊べます${c.releasePlan?`（キャラぷでの一般公開は${esc(c.releasePlan)}予定）`:""}</p>`:""}
