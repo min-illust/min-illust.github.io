@@ -1,5 +1,5 @@
 {
-  "updated": "2026-11-27T08:30:58.855Z",
+  "updated": "2026-11-28T18:56:49.174Z",
   "counts": {
     "request/illust/あの子と彼氏と彼氏の弟": {
       "type": "illust",
@@ -15,6 +15,11 @@
       "type": "talk",
       "title": "あの子と彼氏と彼氏の弟",
       "count": 2
+    },
+    "request/illust/クズな兄貴とその腹黒親友": {
+      "type": "illust",
+      "title": "クズな兄貴とその腹黒親友",
+      "count": 1
     },
     "request/illust/幼なじみの望くんは片想い中": {
       "type": "illust",
