@@ -89,8 +89,8 @@
     "腹黒"
   ],
   "featured": false,
-  "visibility": "先行公開",
-  "release_plan": "11/28",
+  "visibility": "通常",
+  "release_plan": "",
   "remake": false,
   "thumb": "https://min-illust.github.io/images/スチル_23.png",
   "story": "https://s.kyarapu.com/s/6acc5a681337c2616521ecfe",
@@ -100,7 +100,7 @@
     {
       "name": "九条陽太",
       "url": "https://s.kyarapu.com/s/6b09a8e6d25efb36d52bd5a5",
-      "early": true
+      "early": false
     }
   ],
   "talk": "https://s.kyarapu.com/s/6afd645d1dd381218cd2ce06",
